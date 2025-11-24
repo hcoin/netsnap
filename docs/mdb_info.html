@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDB Snapshotter - Developer Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        nav {
+            background: #2d3748;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: #667eea;
+        }
+        
+        main {
+            padding: 2rem;
+        }
+        
+        section {
+            margin-bottom: 3rem;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        h4 {
+            color: #2d3748;
+            font-size: 1.2rem;
+            margin: 1rem 0 0.5rem 0;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+        }
+        
+        code {
+            background: #f7fafc;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e53e3e;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        
+        .info-box {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .warning-box {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .success-box {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: #f7fafc;
+        }
+        
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .code-example {
+            margin: 1.5rem 0;
+        }
+        
+        .example-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+        
+        footer {
+            background: #2d3748;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌉 MDB Snapshotter</h1>
+            <p>RTNetlink Multicast Database Query Tool for Bridge IGMP/MLD Snooping</p>
+        </header>
+        
+        <nav>
+            <ul>
+                <li><a href="#introduction">Introduction</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#developer-guide">Developer Guide</a></li>
+                <li><a href="#api-reference">API Reference</a></li>
+            </ul>
+        </nav>
+        
+        <main>
+            <section id="introduction">
+                <h2>Introduction</h2>
+                
+                <p><strong>mdbsnapshotter.py</strong> is a comprehensive tool for querying and inspecting Linux bridge multicast database (MDB) entries. It provides detailed information about IGMP (IPv4) and MLD (IPv6) snooping on bridge devices, including group memberships, router ports, and forwarding states.</p>
+                
+                <h3>What is Multicast Database (MDB)?</h3>
+                <p>The Multicast Database (MDB) is a kernel data structure that tracks multicast group memberships on bridge ports. When IGMP/MLD snooping is enabled on a bridge, the kernel monitors multicast group subscriptions and only forwards multicast traffic to ports with interested listeners, reducing unnecessary network traffic.</p>
+                
+                <h3>Key Features</h3>
+                <ul>
+                    <li><strong>Complete MDB Inspection:</strong> Query all multicast groups across all bridges or filter by specific bridge</li>
+                    <li><strong>IPv4 & IPv6 Support:</strong> Full IGMP and MLD snooping entry support</li>
+                    <li><strong>L2 Multicast:</strong> MAC-based multicast group tracking</li>
+                    <li><strong>Router Port Detection:</strong> Identify and track multicast router ports</li>
+                    <li><strong>State Tracking:</strong> Distinguish between TEMPORARY (learned) and PERMANENT (static) entries</li>
+                    <li><strong>Timer Information:</strong> View expiration timers for dynamic entries</li>
+                    <li><strong>VLAN Awareness:</strong> Support for VLAN-tagged multicast forwarding</li>
+                    <li><strong>JSON Export:</strong> Machine-readable output for automation</li>
+                    <li><strong>Human-Readable Summary:</strong> Formatted output with interface name resolution</li>
+                    <li><strong>Unknown Attribute Tracking:</strong> Forward compatibility with future kernel versions</li>
+                </ul>
+                
+                <h3>Use Cases</h3>
+                <ul>
+                    <li><strong>Network Monitoring:</strong> Track multicast group subscriptions in real-time</li>
+                    <li><strong>Troubleshooting:</strong> Diagnose IGMP/MLD snooping issues</li>
+                    <li><strong>Automation:</strong> Integrate with network management systems via JSON output</li>
+                    <li><strong>Performance Analysis:</strong> Identify multicast traffic patterns</li>
+                    <li><strong>Security Auditing:</strong> Monitor unauthorized multicast subscriptions</li>
+                </ul>
+                
+                <div class="info-box">
+                    <strong>Note:</strong> This tool uses the RTNetlink protocol directly via CFFI-compiled C code for maximum performance and reliability. It requires root privileges to access the netlink socket.
+                </div>
+            </section>
+            
+            <section id="installation">
+                <h2>Installation</h2>
+                
+                <h3>Requirements</h3>
+                <ul>
+                    <li>Python 3.8 or higher</li>
+                    <li>Linux kernel 3.10+ with MDB support</li>
+                    <li>Root/sudo access for netlink operations</li>
+                    <li>GCC compiler for CFFI compilation</li>
+                </ul>
+                
+                <h3>Python Dependencies</h3>
+                <pre><code>pip install cffi setuptools</code></pre>
+                
+                <div class="warning-box">
+                    <strong>Python 3.12+ Users:</strong> The setuptools package is required for CFFI compilation on Python 3.12 and later.
+                </div>
+                
+                <h3>Quick Start</h3>
+                <pre><code># Make the script executable
+chmod +x mdbsnapshotter.py
+
+# Run with root privileges
+sudo python3 mdbsnapshotter.py --summary</code></pre>
+            </section>
+            
+            <section id="usage">
+                <h2>Usage Examples</h2>
+                
+                <h3>Basic Commands</h3>
+                
+                <div class="code-example">
+                    <div class="example-title">View all multicast groups (JSON output):</div>
+                    <pre><code>sudo python3 mdbsnapshotter.py</code></pre>
+                </div>
+                
+                <div class="code-example">
+                    <div class="example-title">Human-readable summary:</div>
+                    <pre><code>sudo python3 mdbsnapshotter.py --summary</code></pre>
+                </div>
+                
+                <div class="code-example">
+                    <div class="example-title">Filter by specific bridge:</div>
+                    <pre><code>sudo python3 mdbsnapshotter.py --summary --bridge br0</code></pre>
+                </div>
+                
+                <div class="code-example">
+                    <div class="example-title">Show only IPv4 multicast groups:</div>
+                    <pre><code>sudo python3 mdbsnapshotter.py --summary --ipv4</code></pre>
+                </div>
+                
+                <div class="code-example">
+                    <div class="example-title">Show only IPv6 multicast groups:</div>
+                    <pre><code>sudo python3 mdbsnapshotter.py --summary --ipv6</code></pre>
+                </div>
+                
+                <div class="code-example">
+                    <div class="example-title">Show only router ports:</div>
+                    <pre><code>sudo python3 mdbsnapshotter.py --summary --routers</code></pre>
+                </div>
+                
+                <div class="code-example">
+                    <div class="example-title">Debug mode for troubleshooting:</div>
+                    <pre><code>sudo python3 mdbsnapshotter.py --debug --summary</code></pre>
+                </div>
+                
+                <div class="code-example">
+                    <div class="example-title">Export to JSON file:</div>
+                    <pre><code>sudo python3 mdbsnapshotter.py > mdb_snapshot.json</code></pre>
+                </div>
+                
+                <h3>Command-Line Options</h3>
+                <table>
+                    <tr>
+                        <th>Option</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><code>--summary</code></td>
+                        <td>Display human-readable summary instead of JSON</td>
+                    </tr>
+                    <tr>
+                        <td><code>--bridge NAME</code></td>
+                        <td>Filter by specific bridge interface name</td>
+                    </tr>
+                    <tr>
+                        <td><code>--ipv4</code></td>
+                        <td>Show only IPv4 multicast groups (IGMP)</td>
+                    </tr>
+                    <tr>
+                        <td><code>--ipv6</code></td>
+                        <td>Show only IPv6 multicast groups (MLD)</td>
+                    </tr>
+                    <tr>
+                        <td><code>--routers</code></td>
+                        <td>Show only router ports</td>
+                    </tr>
+                    <tr>
+                        <td><code>--debug</code></td>
+                        <td>Enable debug output for troubleshooting</td>
+                    </tr>
+                    <tr>
+                        <td><code>--no-unknown-attrs</code></td>
+                        <td>Disable unknown attribute tracking</td>
+                    </tr>
+                </table>
+                
+                <h3>Understanding the Output</h3>
+                
+                <h4>MDB Entry States</h4>
+                <table>
+                    <tr>
+                        <th>State</th>
+                        <th>Value</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>TEMPORARY</td>
+                        <td>0</td>
+                        <td>Dynamically learned via IGMP/MLD, will expire</td>
+                    </tr>
+                    <tr>
+                        <td>PERMANENT</td>
+                        <td>0x80</td>
+                        <td>Statically configured, never expires</td>
+                    </tr>
+                </table>
+                
+                <h4>MDB Entry Flags</h4>
+                <table>
+                    <tr>
+                        <th>Flag</th>
+                        <th>Value</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>OFFLOAD</td>
+                        <td>0x01</td>
+                        <td>Entry offloaded to hardware</td>
+                    </tr>
+                    <tr>
+                        <td>FAST_LEAVE</td>
+                        <td>0x02</td>
+                        <td>Fast leave enabled for this entry</td>
+                    </tr>
+                    <tr>
+                        <td>STAR_EXCL</td>
+                        <td>0x04</td>
+                        <td>Exclude mode for source-specific multicast</td>
+                    </tr>
+                    <tr>
+                        <td>BLOCKED</td>
+                        <td>0x08</td>
+                        <td>Traffic blocked for this entry</td>
+                    </tr>
+                </table>
+                
+                <h4>Router Port Types</h4>
+                <table>
+                    <tr>
+                        <th>Type</th>
+                        <th>Value</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>DISABLED</td>
+                        <td>0</td>
+                        <td>Not a router port</td>
+                    </tr>
+                    <tr>
+                        <td>TEMP_QUERY</td>
+                        <td>1</td>
+                        <td>Temporary router port (learned from query)</td>
+                    </tr>
+                    <tr>
+                        <td>PERMANENT</td>
+                        <td>2</td>
+                        <td>Permanently configured router port</td>
+                    </tr>
+                    <tr>
+                        <td>TEMPORARY</td>
+                        <td>3</td>
+                        <td>Temporary router port</td>
+                    </tr>
+                </table>
+            </section>
+            
+            <section id="architecture">
+                <h2>Architecture</h2>
+                
+                <h3>System Design</h3>
+                <p>The tool uses a hybrid C/Python architecture for optimal performance and ease of use:</p>
+                
+                <ul>
+                    <li><strong>C Core:</strong> Low-level netlink communication and parsing compiled via CFFI</li>
+                    <li><strong>Python Wrapper:</strong> High-level API, formatting, and output generation</li>
+                    <li><strong>CFFI Bridge:</strong> Seamless integration between C and Python with minimal overhead</li>
+                </ul>
+                
+                <h3>Data Flow</h3>
+                <ol>
+                    <li>Python creates <code>MDBQuery</code> context manager</li>
+                    <li>C code opens netlink socket (<code>AF_NETLINK, NETLINK_ROUTE</code>)</li>
+                    <li>Send <code>RTM_GETMDB</code> request with <code>NLM_F_DUMP</code> flag</li>
+                    <li>Kernel responds with <code>RTM_NEWMDB</code> messages (type 86)</li>
+                    <li>C code parses netlink attributes (MDBA_MDB, MDBA_ROUTER)</li>
+                    <li>Extract <code>br_mdb_entry</code> structures and extended attributes</li>
+                    <li>Convert to Python dictionaries with decoded fields</li>
+                    <li>Python formats output (JSON or human-readable)</li>
+                </ol>
+                
+                <h3>Netlink Message Structure</h3>
+                <pre><code>RTM_NEWMDB (type 86)
+├── br_port_msg (family=AF_BRIDGE, ifindex)
+└── Attributes (rtattr chain)
+    ├── MDBA_MDB (1)
+    │   └── MDBA_MDB_ENTRY (1)
+    │       └── MDBA_MDB_ENTRY_INFO (1)
+    │           ├── br_mdb_entry (base structure)
+    │           └── Extended attributes
+    │               ├── MDBA_MDB_EATTR_TIMER (1)
+    │               ├── MDBA_MDB_EATTR_GROUP_MODE (3)
+    │               ├── MDBA_MDB_EATTR_PROTO (6)
+    │               └── MDBA_MDB_EATTR_RTPROT (5)
+    └── MDBA_ROUTER (2)
+        ├── MDBA_ROUTER_PORT (1)
+        └── MDBA_ROUTER_PATTR (2)
+            ├── MDBA_ROUTER_PATTR_TIMER (1)
+            ├── MDBA_ROUTER_PATTR_TYPE (2)
+            ├── MDBA_ROUTER_PATTR_INET_TIMER (3)
+            ├── MDBA_ROUTER_PATTR_INET6_TIMER (4)
+            └── MDBA_ROUTER_PATTR_VID (5)</code></pre>
+                
+                <div class="info-box">
+                    <strong>Kernel Compatibility:</strong> The tool handles message type variations across kernel versions (RTM_NEWMDB can be 84 or 86) and gracefully tracks unknown attributes for forward compatibility.
+                </div>
+            </section>
+            
+            <section id="developer-guide">
+                <h2>Developer Guide</h2>
+                
+                <h3>Code Structure</h3>
+                
+                <h4>Main Components</h4>
+                <ul>
+                    <li><strong>C_SOURCE:</strong> Embedded C code for netlink operations</li>
+                    <li><strong>FFI Definitions:</strong> C structure and function declarations</li>
+                    <li><strong>MDBQuery Class:</strong> Python context manager for safe socket handling</li>
+                    <li><strong>Helper Functions:</strong> Attribute decoding and name mapping</li>
+                    <li><strong>CLI Interface:</strong> Argument parsing and output formatting</li>
+                </ul>
+                
+                <h3>Adding New Features</h3>
+                
+                <h4>1. Adding New Attribute Parsing</h4>
+                <p>To parse a new MDBA attribute:</p>
+                
+                <pre><code>// In C_SOURCE, add to mdb_entry_t structure:
+typedef struct {
+    // ... existing fields ...
+    unsigned char new_field;
+    int has_new_field;
+} mdb_entry_t;
+
+// In parse_mdb_entry_attrs():
+case MDBA_MDB_EATTR_NEW_ATTR:
+    if (RTA_PAYLOAD(entry_rta) >= sizeof(unsigned char)) {
+        entry->new_field = *(unsigned char*)RTA_DATA(entry_rta);
+        entry->has_new_field = 1;
+    }
+    break;</code></pre>
+                
+                <pre><code># In Python, update parsing:
+if entry.has_new_field:
+    entry_info['new_field'] = entry.new_field</code></pre>
+                
+                <h4>2. Adding New Output Format</h4>
+                <pre><code># Add new argument
+parser.add_argument('--csv', action='store_true',
+                    help='Output in CSV format')
+
+# Add formatting function
+def format_as_csv(mdb_data):
+    import csv
+    import sys
+    writer = csv.writer(sys.stdout)
+    writer.writerow(['Bridge', 'Group', 'Port', 'State'])
+    for entry in mdb_data['entries']:
+        writer.writerow([
+            entry.get('ifindex'),
+            entry.get('group'),
+            entry.get('port_ifindex'),
+            entry.get('state_name')
+        ])
+
+# Use it
+if args.csv:
+    format_as_csv(mdb_data)</code></pre>
+                
+                <h4>3. Adding Filtering Options</h4>
+                <pre><code># Add filter argument
+parser.add_argument('--state', choices=['temp', 'permanent'],
+                    help='Filter by entry state')
+
+# Apply filter
+if args.state:
+    filter_state = 'TEMPORARY' if args.state == 'temp' else 'PERMANENT'
+    entries = [e for e in entries 
+               if e.get('state_name') == filter_state]</code></pre>
+                
+                <h3>Debugging</h3>
+                
+                <h4>CFFI Compilation Issues</h4>
+                <p>If CFFI fails to compile, check:</p>
+                <ul>
+                    <li>Kernel headers installed: <code>apt-get install linux-headers-$(uname -r)</code></li>
+                    <li>GCC compiler available: <code>apt-get install gcc</code></li>
+                    <li>CFFI cache cleared: <code>rm -rf __pycache__/_cffi__*</code></li>
+                    <li>Python version: <code>python3 --version</code> (must be 3.8+)</li>
+                </ul>
+                
+                <h4>No Entries Returned</h4>
+                <p>If the tool returns 0 entries:</p>
+                <ol>
+                    <li>Verify entries exist: <code>bridge mdb show</code></li>
+                    <li>Check kernel version: <code>uname -r</code> (need 3.10+)</li>
+                    <li>Enable debug mode: <code>--debug</code></li>
+                    <li>Verify root access: <code>sudo</code> required</li>
+                    <li>Check for netlink permission errors in dmesg</li>
+                </ol>
+                
+                <h4>Unknown Attributes</h4>
+                <p>The tool tracks unknown attributes for forward compatibility:</p>
+                <pre><code>sudo python3 mdbsnapshotter.py | jq '.entries[].unknown_entry_attrs'</code></pre>
+                
+                <p>If you see unknown attributes, check:</p>
+                <ul>
+                    <li>Kernel version for new features</li>
+                    <li>Linux kernel documentation for new MDBA_* constants</li>
+                    <li>Update C_SOURCE with new attribute definitions</li>
+                </ul>
+                
+                <h3>Testing</h3>
+                
+                <h4>Unit Tests</h4>
+                <pre><code>import unittest
+from mdbsnapshotter import MDBQuery, decode_unknown_attrs
+
+class TestMDBQuery(unittest.TestCase):
+    def test_decode_unknown_attrs(self):
+        attrs = [1, 2, 0x8001]  # 0x8001 is nested
+        decoded = decode_unknown_attrs(attrs, 'MDBA')
+        self.assertEqual(len(decoded), 3)
+        self.assertTrue(decoded[2]['nested'])
+    
+    def test_mdb_query_requires_root(self):
+        # Should fail without root
+        with self.assertRaises(RuntimeError):
+            with MDBQuery() as mdb:
+                pass
+
+if __name__ == '__main__':
+    unittest.main()</code></pre>
+                
+                <h4>Integration Tests</h4>
+                <pre><code>#!/bin/bash
+# Create test bridge
+ip link add br-test type bridge
+ip link set br-test up
+
+# Enable multicast snooping
+echo 1 > /sys/class/net/br-test/bridge/multicast_snooping
+
+# Test query
+python3 mdbsnapshotter.py --bridge br-test --summary
+
+# Cleanup
+ip link del br-test</code></pre>
+                
+                <h3>Performance Optimization</h3>
+                
+                <h4>Large Networks</h4>
+                <p>For bridges with thousands of entries:</p>
+                <ul>
+                    <li>Use <code>--bridge</code> filter to query specific bridges</li>
+                    <li>Use <code>--ipv4</code> or <code>--ipv6</code> to filter by family</li>
+                    <li>Pipe JSON output to <code>jq</code> for efficient filtering</li>
+                    <li>Consider batch processing with scripts</li>
+                </ul>
+                
+                <h4>Memory Usage</h4>
+                <p>The C code uses a dynamic buffer that grows as needed. Initial size is 64KB, doubles when full. For very large MDB tables, you may want to adjust:</p>
+                <pre><code>// In nl_recv_response()
+buf->capacity = 131072;  // Start with 128KB instead of 64KB</code></pre>
+            </section>
+            
+            <section id="api-reference">
+                <h2>API Reference</h2>
+                
+                <h3>Python API</h3>
+                
+                <h4>MDBQuery Class</h4>
+                <pre><code>class MDBQuery:
+    """Query multicast database information using RTNETLINK protocol.
+    
+    Args:
+        capture_unknown_attrs (bool): Track unknown attributes for 
+                                     forward compatibility. Default: True
+    
+    Usage:
+        with MDBQuery() as mdb:
+            data = mdb.get_mdb(bridge_ifindex=0)
+    """
+    
+    def __init__(self, capture_unknown_attrs: bool = True)
+    
+    def get_mdb(self, bridge_ifindex: int = 0) -> Dict[str, Any]:
+        """Query MDB entries and router ports.
+        
+        Args:
+            bridge_ifindex: Bridge interface index (0 for all bridges)
+        
+        Returns:
+            Dictionary with 'entries' and 'routers' lists
+        
+        Raises:
+            RuntimeError: If socket creation or query fails
+        """</code></pre>
+                
+                <h4>Helper Functions</h4>
+                <pre><code>def decode_unknown_attrs(attr_list: List[int], 
+                        attr_type: str = 'MDBA') -> List[Dict[str, Any]]:
+    """Decode unknown attribute numbers into human-readable information.
+    
+    Args:
+        attr_list: List of attribute numbers
+        attr_type: Attribute type ('MDBA' or 'MDBA_MDB_EATTR')
+    
+    Returns:
+        List of dictionaries with attribute information:
+        - number: Raw attribute number
+        - base_number: Number without nested flag
+        - nested: Boolean indicating if nested
+        - name: Human-readable name
+    """</code></pre>
+                
+                <h3>C API</h3>
+                
+                <h4>Core Functions</h4>
+                <pre><code>int nl_create_socket(void);
+    // Returns: Socket FD or -1 on error
+
+void nl_close_socket(int sock);
+    // Closes netlink socket
+
+int nl_send_getmdb(int sock, unsigned int* seq_out, int ifindex);
+    // Returns: Bytes sent or -1 on error
+
+response_buffer_t* nl_recv_response(int sock, unsigned int expected_seq);
+    // Returns: Response buffer or NULL on error
+
+int nl_parse_mdb_entries(response_buffer_t* buf, 
+                         mdb_entry_t** entries, int* count);
+    // Returns: 0 on success, -1 on error
+
+int nl_parse_mdb_routers(response_buffer_t* buf, 
+                         mdb_router_t** routers, int* count);
+    // Returns: 0 on success, -1 on error
+
+void nl_free_mdb_entries(mdb_entry_t* entries);
+void nl_free_mdb_routers(mdb_router_t* routers);
+void nl_free_response(response_buffer_t* buf);</code></pre>
+                
+                <h4>Data Structures</h4>
+                <pre><code>typedef struct {
+    int ifindex;              // Bridge interface index
+    unsigned char state;      // Entry state (0=temp, 0x80=permanent)
+    unsigned char flags;      // Entry flags (offload, fast_leave, etc)
+    unsigned short vid;       // VLAN ID
+    int has_vid;             // VLAN present flag
+    unsigned char addr[16];   // Group address (IPv4/IPv6)
+    int addr_len;            // Address length (4 or 16)
+    unsigned short addr_proto;// ETH_P_IP (0x0800) or ETH_P_IPV6 (0x86DD)
+    int has_addr;            // Address present flag
+    int port_ifindex;        // Port interface index
+    int has_port;            // Port present flag
+    unsigned int timer;      // Timer in centiseconds
+    int has_timer;           // Timer present flag
+    unsigned char group_mode;// INCLUDE(1) or EXCLUDE(2)
+    int has_group_mode;      // Group mode present flag
+    unsigned char proto;     // Protocol (IGMP/MLD version)
+    int has_proto;           // Protocol present flag
+    unsigned char rtprot;    // Routing protocol
+    int has_rtprot;          // Routing protocol present flag
+    unsigned short unknown_mdba_attrs[64];      // Unknown attributes
+    int unknown_mdba_attrs_count;
+    unsigned short unknown_entry_attrs[64];
+    int unknown_entry_attrs_count;
+} mdb_entry_t;</code></pre>
+                
+                <h3>JSON Output Schema</h3>
+                <pre><code>{
+  "entries": [
+    {
+      "ifindex": 3,                    // Bridge interface index
+      "state": 0,                      // 0=TEMPORARY, 0x80=PERMANENT
+      "state_name": "TEMPORARY",       // Human-readable state
+      "flags": 0,                      // Flags bitmask
+      "flags_name": "NONE",            // Human-readable flags
+      "port_ifindex": 5,               // Port interface index
+      "vid": 100,                      // VLAN ID (optional)
+      "group": "ff02::1:ff5a:d02b",   // Multicast group address
+      "family": "ipv6",                // ipv4, ipv6, or l2
+      "addr_proto": 34525,             // ETH_P_* value
+      "timer": 25987,                  // Timer in centiseconds
+      "timer_sec": 259.87,             // Timer in seconds
+      "group_mode": "EXCLUDE",         // INCLUDE or EXCLUDE (optional)
+      "proto": 2,                      // Protocol version (optional)
+      "rtprot": 0                      // Routing protocol (optional)
+    }
+  ],
+  "routers": [
+    {
+      "ifindex": 3,                    // Bridge interface index
+      "port_ifindex": 5,               // Port interface index
+      "type": "TEMPORARY",             // Router port type
+      "type_value": 3,                 // Numeric type
+      "timer": 25987,                  // Timer in centiseconds (optional)
+      "timer_sec": 259.87,             // Timer in seconds (optional)
+      "inet_timer": 25987,             // IPv4 timer (optional)
+      "inet_timer_sec": 259.87,        // IPv4 timer in seconds (optional)
+      "inet6_timer": 25987,            // IPv6 timer (optional)
+      "inet6_timer_sec": 259.87,       // IPv6 timer in seconds (optional)
+      "vid": 100                       // VLAN ID (optional)
+    }
+  ]
+}</code></pre>
+                
+                <div class="success-box">
+                    <strong>Best Practice:</strong> Always use the context manager pattern (<code>with MDBQuery() as mdb</code>) to ensure proper socket cleanup, even if exceptions occur.
+                </div>
+            </section>
+            
+            <section id="troubleshooting">
+                <h2>Troubleshooting</h2>
+                
+                <h3>Common Issues</h3>
+                
+                <h4>Permission Denied</h4>
+                <pre><code>RuntimeError: Failed to create netlink socket</code></pre>
+                <p><strong>Solution:</strong> Run with sudo or as root:</p>
+                <pre><code>sudo python3 mdbsnapshotter.py</code></pre>
+                
+                <h4>CFFI Compilation Failed</h4>
+                <pre><code>error: command 'gcc' failed with exit status 1</code></pre>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Install build tools: <code>apt-get install build-essential python3-dev</code></li>
+                    <li>Install kernel headers: <code>apt-get install linux-headers-$(uname -r)</code></li>
+                    <li>For Python 3.12+: <code>pip install setuptools</code></li>
+                </ul>
+                
+                <h4>No Entries Found</h4>
+                <p><strong>Verification steps:</strong></p>
+                <ol>
+                    <li>Check if entries exist: <code>bridge mdb show</code></li>
+                    <li>Verify multicast snooping enabled: <code>cat /sys/class/net/BRIDGE/bridge/multicast_snooping</code></li>
+                    <li>Check kernel support: <code>uname -r</code> (need 3.10+)</li>
+                    <li>Clear CFFI cache: <code>rm -rf __pycache__/_cffi__*</code></li>
+                    <li>Enable debug mode: <code>--debug</code></li>
+                </ol>
+                
+                <h4>Wrong Message Type</h4>
+                <pre><code>DEBUG: nlmsg_type = 86 (RTM_NEWMDB=84, ...)</code></pre>
+                <p><strong>Solution:</strong> This is normal. The tool handles both message types (84 and 86) automatically. Clear the CFFI cache to recompile:</p>
+                <pre><code>rm -rf __pycache__/_cffi__*</code></pre>
+            </section>
+        </main>
+        
+        <footer>
+            <p><strong>mdbsnapshotter.py</strong> - Part of the Network Snapshot Tool Suite</p>
+            <p>Companion tools: netsnapshotter.py (network interfaces) | neighsnapshotter.py (neighbor tables)</p>
+        </footer>
+    </div>
+</body>
+</html>

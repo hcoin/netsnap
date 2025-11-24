@@ -1,0 +1,96 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "cffi>=1.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netmon"
+version = "1.0.0"
+description = "Comprehensive Linux network snapshot toolkit and python library using RTNetlink and Generic Netlink"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    {name = "Harry Coin", email = "hcoin@quietfountain.com"}
+]
+maintainers = [
+    {name = "Harry Coin", email = "hcoin@quietfountain.com"}
+]
+keywords = [
+    "networking",
+    "linux",
+    "rtnetlink",
+    "netlink",
+    "monitoring",
+    "network-interfaces",
+    "routing",
+    "arp",
+    "ndp",
+    "wireguard",
+    "bridge",
+    "system-administration"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Networking",
+    "Topic :: System :: Monitoring",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "cffi>=1.0.0",
+    "setuptools>=61.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/hcoin/netmon"
+Documentation = "https://github.com/hcoin/netmon#readme"
+Repository = "https://github.com/hcoin/netmon"
+"Bug Tracker" = "https://github.com/hcoin/netmon/issues"
+
+[project.scripts]
+netmon-device = "netmon.device_info:main"
+netmon-route = "netmon.route_info:main"
+netmon-neighbor = "netmon.neighbor_info:main"
+netmon-mdb = "netmon.mdb_info:main"
+netmon-rule = "netmon.rule_info:main"
+
+[tool.setuptools]
+packages = ["netmon"]
+
+[tool.setuptools.package-data]
+netmon = ["*.html"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--cov=netmon --cov-report=html --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

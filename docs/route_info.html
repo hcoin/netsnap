@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>net_route_info.py - RTNetlink Routing Table Query Module</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .overview {
+            background-color: #ecf9ff;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        
+        pre {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.4;
+        }
+        
+        pre code {
+            background-color: transparent;
+            color: #abb2bf;
+            padding: 0;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .method-signature {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .toc {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .toc li {
+            margin-bottom: 5px;
+        }
+        
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .badge-required {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .badge-optional {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .badge-linux {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .feature-box h4 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>net_route_info.py</h1>
+        <p style="font-size: 1.2em; color: #666; margin-bottom: 30px;">
+            RTNetlink Routing Table Query Module with C Library via CFFI
+        </p>
+
+        <div class="overview">
+            <strong>Overview:</strong> A high-performance Python module for querying Linux routing tables using the RTNetlink protocol. 
+            This module provides comprehensive access to kernel routing information for both IPv4 and IPv6, including support for 
+            multiple routing tables, multipath routes, and detailed route metadata.
+        </div>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#architecture">Architecture & Design</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#requirements">Requirements & Installation</a></li>
+                <li><a href="#usage">Usage Examples</a></li>
+                <li><a href="#api">API Reference</a></li>
+                <li><a href="#route-info">Route Information Structure</a></li>
+                <li><a href="#cli">Command-Line Interface</a></li>
+                <li><a href="#technical">Technical Details</a></li>
+            </ul>
+        </div>
+
+        <h2 id="architecture">Architecture & Design</h2>
+        
+        <h3>Design Philosophy</h3>
+        <p>
+            The module is designed around a hybrid architecture that combines the performance of C with the convenience of Python:
+        </p>
+        <ul>
+            <li><strong>C Core:</strong> Low-level RTNetlink communication implemented in C for maximum performance and direct kernel access</li>
+            <li><strong>CFFI Bridge:</strong> Uses CFFI's <code>ffi.verify()</code> for runtime compilation and seamless Python-C integration</li>
+            <li><strong>Python Interface:</strong> Clean, Pythonic API with type hints and context managers for safe resource management</li>
+        </ul>
+
+        <h3>Architecture Layers</h3>
+        <div class="feature-grid">
+            <div class="feature-box">
+                <h4>Layer 1: Kernel Interface</h4>
+                <p>Direct communication with Linux kernel via RTNetlink sockets using <code>RTM_GETROUTE</code> messages</p>
+            </div>
+            <div class="feature-box">
+                <h4>Layer 2: C Implementation</h4>
+                <p>Handles socket management, message construction, response parsing, and attribute extraction</p>
+            </div>
+            <div class="feature-box">
+                <h4>Layer 3: CFFI Bridge</h4>
+                <p>Runtime compilation and type conversion between C structures and Python objects</p>
+            </div>
+            <div class="feature-box">
+                <h4>Layer 4: Python API</h4>
+                <p>Context manager interface, type conversion, and user-friendly data structures</p>
+            </div>
+        </div>
+
+        <h3>Data Flow</h3>
+        <pre><code>┌─────────────────────────────────────────────┐
+│  Python Application Code                   │
+└──────────────────┬──────────────────────────┘
+                   │ get_routes()
+                   ▼
+┌─────────────────────────────────────────────┐
+│  RoutingTableQuery Class                   │
+│  - Socket management (context manager)     │
+│  - Type conversion (Python ↔ C)            │
+└──────────────────┬──────────────────────────┘
+                   │ lib.nl_send_getroute()
+                   ▼
+┌─────────────────────────────────────────────┐
+│  C Library (via CFFI)                      │
+│  - nl_create_socket()                      │
+│  - nl_send_getroute()                      │
+│  - nl_receive_response()                   │
+│  - nl_parse_routes()                       │
+└──────────────────┬──────────────────────────┘
+                   │ RTNetlink Protocol
+                   ▼
+┌─────────────────────────────────────────────┐
+│  Linux Kernel Routing Subsystem            │
+│  - Route lookup and filtering              │
+│  - RTM_NEWROUTE messages                   │
+└─────────────────────────────────────────────┘</code></pre>
+
+        <h2 id="features">Key Features</h2>
+
+        <div class="feature-grid">
+            <div class="feature-box">
+                <h4>✓ Dual Stack Support</h4>
+                <ul>
+                    <li>Full IPv4 routing tables</li>
+                    <li>Full IPv6 routing tables</li>
+                    <li>Mixed query support</li>
+                </ul>
+            </div>
+            <div class="feature-box">
+                <h4>✓ Multiple Tables</h4>
+                <ul>
+                    <li>Main routing table</li>
+                    <li>Local routing table</li>
+                    <li>Custom routing tables (0-255+)</li>
+                </ul>
+            </div>
+            <div class="feature-box">
+                <h4>✓ Route Types</h4>
+                <ul>
+                    <li>UNICAST (normal routes)</li>
+                    <li>LOCAL (interface addresses)</li>
+                    <li>BROADCAST/MULTICAST</li>
+                    <li>UNREACHABLE/PROHIBIT/BLACKHOLE</li>
+                </ul>
+            </div>
+            <div class="feature-box">
+                <h4>✓ Advanced Features</h4>
+                <ul>
+                    <li>Multipath routes (ECMP)</li>
+                    <li>Route metrics and preferences</li>
+                    <li>Routing protocols (DHCP, BIRD, etc.)</li>
+                    <li>Cache information</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Route Metadata Extracted</h3>
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Fields</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><strong>Addressing</strong></td>
+                <td>dst, src, gateway, prefsrc</td>
+                <td>Destination network, source address, next-hop gateway, preferred source</td>
+            </tr>
+            <tr>
+                <td><strong>Interface</strong></td>
+                <td>dev, dev_index</td>
+                <td>Output interface name and index</td>
+            </tr>
+            <tr>
+                <td><strong>Classification</strong></td>
+                <td>family, type, scope, protocol</td>
+                <td>IPv4/IPv6, route type, scope (link/host/universe), protocol that installed route</td>
+            </tr>
+            <tr>
+                <td><strong>Routing Policy</strong></td>
+                <td>table, metric, tos, flags</td>
+                <td>Routing table ID, preference/metric, type of service, route flags</td>
+            </tr>
+            <tr>
+                <td><strong>Multipath</strong></td>
+                <td>multipath[]</td>
+                <td>Array of nexthop objects for ECMP routes</td>
+            </tr>
+            <tr>
+                <td><strong>Cache Info</strong></td>
+                <td>cacheinfo{}</td>
+                <td>Cache statistics (clntref, last_use, expires, error, used)</td>
+            </tr>
+        </table>
+
+        <h2 id="requirements">Requirements & Installation</h2>
+
+        <h3>System Requirements</h3>
+        <div class="info">
+            <strong>Platform:</strong> <span class="badge badge-linux">Linux 2.6+</span>
+            <br><br>
+            This module requires Linux with RTNetlink support. It will not work on Windows, macOS, or other Unix systems.
+        </div>
+
+        <h3>Python Requirements</h3>
+        <table>
+            <tr>
+                <th>Requirement</th>
+                <th>Version</th>
+                <th>Notes</th>
+            </tr>
+            <tr>
+                <td>Python</td>
+                <td>≥ 3.8</td>
+                <td>Required for type hints and modern syntax</td>
+            </tr>
+            <tr>
+                <td>cffi</td>
+                <td>≥ 1.0.0</td>
+                <td>Required for C library integration</td>
+            </tr>
+            <tr>
+                <td>setuptools</td>
+                <td>Any version</td>
+                <td>Required for Python 3.12+ due to distutils removal</td>
+            </tr>
+        </table>
+
+        <h3>Installation</h3>
+        <pre><code># Install dependencies
+pip install cffi setuptools
+
+# For Python 3.12+, setuptools is mandatory
+pip install setuptools  # if not already installed</code></pre>
+
+        <div class="warning">
+            <strong>⚠ Python 3.12+ Note:</strong> Python 3.12 removed the <code>distutils</code> module from the standard library. 
+            CFFI's <code>ffi.verify()</code> method requires setuptools on Python 3.12+ to provide the compilation infrastructure 
+            that distutils previously offered. The module will automatically check for setuptools availability at import time.
+        </div>
+
+        <h3>Permissions</h3>
+        <div class="warning">
+            <strong>⚠ Root/CAP_NET_ADMIN Required:</strong> Querying routing tables via RTNetlink requires either:
+            <ul style="margin-top: 10px;">
+                <li>Running as root: <code>sudo python3 net_route_info.py</code></li>
+                <li>CAP_NET_ADMIN capability: <code>setcap cap_net_admin+ep /usr/bin/python3</code> (not recommended for system Python)</li>
+            </ul>
+        </div>
+
+        <h2 id="usage">Usage Examples</h2>
+
+        <h3>Basic Usage: Query All Routes</h3>
+        <pre><code>from net_route_info import RoutingTableQuery
+
+# Using context manager (recommended)
+with RoutingTableQuery() as query:
+    routes = query.get_routes()
+    
+    for route in routes:
+        print(f"Destination: {route['dst']}")
+        if 'gateway' in route:
+            print(f"  via {route['gateway']}")
+        if 'dev' in route:
+            print(f"  dev {route['dev']}")
+        print(f"  protocol: {route['protocol']}")
+        print()</code></pre>
+
+        <h3>IPv4-Only Routes</h3>
+        <pre><code>with RoutingTableQuery() as query:
+    ipv4_routes = query.get_routes(family='ipv4')
+    
+    # Filter for default route
+    default_routes = [r for r in ipv4_routes if r['dst'] == '0.0.0.0/0']
+    
+    for route in default_routes:
+        print(f"Default gateway: {route.get('gateway', 'N/A')}")</code></pre>
+
+        <h3>IPv6-Only Routes</h3>
+        <pre><code>with RoutingTableQuery() as query:
+    ipv6_routes = query.get_routes(family='ipv6')
+    
+    # Filter for link-local routes
+    link_local = [r for r in ipv6_routes 
+                  if r['dst'].startswith('fe80:')]
+    
+    print(f"Found {len(link_local)} link-local routes")</code></pre>
+
+        <h3>Filtering by Routing Table</h3>
+        <pre><code>with RoutingTableQuery() as query:
+    all_routes = query.get_routes()
+    
+    # Main table routes only
+    main_routes = [r for r in all_routes if r['table'] == 'MAIN']
+    
+    # Local table routes only
+    local_routes = [r for r in all_routes if r['table'] == 'LOCAL']
+    
+    print(f"Main table: {len(main_routes)} routes")
+    print(f"Local table: {len(local_routes)} routes")</code></pre>
+
+        <h3>Analyzing Multipath Routes</h3>
+        <pre><code>with RoutingTableQuery() as query:
+    routes = query.get_routes()
+    
+    # Find ECMP routes
+    multipath_routes = [r for r in routes if 'multipath' in r]
+    
+    for route in multipath_routes:
+        print(f"ECMP route to {route['dst']}:")
+        for nexthop in route['multipath']:
+            print(f"  - via {nexthop.get('gateway', 'direct')}")
+            print(f"    dev {nexthop.get('dev', nexthop['dev_index'])}")
+            print(f"    weight {nexthop['weight']}")</code></pre>
+
+        <h3>Disabling Unknown Attribute Tracking</h3>
+        <pre><code># By default, unknown RTA_* attributes are tracked
+# Disable for slightly better performance
+with RoutingTableQuery(capture_unknown_attrs=False) as query:
+    routes = query.get_routes()
+    # 'unknown_rta_attrs' field will not be present</code></pre>
+
+        <h3>JSON Export</h3>
+        <pre><code>import json
+
+with RoutingTableQuery() as query:
+    routes = query.get_routes()
+    
+    # Pretty-print JSON
+    print(json.dumps(routes, indent=2))
+    
+    # Save to file
+    with open('routes.json', 'w') as f:
+        json.dump(routes, f, indent=2)</code></pre>
+
+        <h2 id="api">API Reference</h2>
+
+        <h3>RoutingTableQuery Class</h3>
+        
+        <div class="method-signature">
+<strong>class</strong> RoutingTableQuery(capture_unknown_attrs: bool = True)
+        </div>
+        
+        <p>Main class for querying routing tables. Implements context manager protocol for safe socket management.</p>
+        
+        <h4>Constructor Parameters</h4>
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>capture_unknown_attrs</code></td>
+                <td>bool</td>
+                <td>True</td>
+                <td>Whether to track unknown RTA_* attributes in route entries</td>
+            </tr>
+        </table>
+
+        <h4>Methods</h4>
+        
+        <div class="method-signature">
+get_routes(family: Optional[str] = None) → List[Dict[str, Any]]
+        </div>
+        
+        <p>Query routing table entries with optional address family filtering.</p>
+        
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Type</th>
+                <th>Valid Values</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>family</code></td>
+                <td>Optional[str]</td>
+                <td>'ipv4', 'ipv6', None</td>
+                <td>Address family filter. None returns both IPv4 and IPv6</td>
+            </tr>
+        </table>
+        
+        <p><strong>Returns:</strong> List of dictionaries, each representing a route entry with complete metadata.</p>
+        
+        <p><strong>Raises:</strong></p>
+        <ul>
+            <li><code>ValueError</code> - Invalid family parameter</li>
+            <li><code>RuntimeError</code> - Socket creation, send, receive, or parse failure</li>
+            <li><code>PermissionError</code> - Insufficient privileges (needs root/CAP_NET_ADMIN)</li>
+        </ul>
+
+        <h4>Context Manager Protocol</h4>
+        <pre><code># Automatically manages socket lifecycle
+with RoutingTableQuery() as query:
+    routes = query.get_routes()
+    # Socket is automatically closed on exit
+
+# Manual socket management (not recommended)
+query = RoutingTableQuery()
+query.__enter__()  # Creates socket
+try:
+    routes = query.get_routes()
+finally:
+    query.__exit__(None, None, None)  # Closes socket</code></pre>
+
+        <h2 id="route-info">Route Information Structure</h2>
+
+        <p>Each route entry is returned as a dictionary with the following structure:</p>
+
+        <h3>Standard Fields</h3>
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Always Present</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>family</code></td>
+                <td>str</td>
+                <td>✓</td>
+                <td>'ipv4' or 'ipv6'</td>
+            </tr>
+            <tr>
+                <td><code>type</code></td>
+                <td>str</td>
+                <td>✓</td>
+                <td>Route type: UNICAST, LOCAL, BROADCAST, MULTICAST, UNREACHABLE, PROHIBIT, BLACKHOLE, etc.</td>
+            </tr>
+            <tr>
+                <td><code>protocol</code></td>
+                <td>str</td>
+                <td>✓</td>
+                <td>Routing protocol: KERNEL, BOOT, STATIC, DHCP, BIRD, ZEBRA, BABEL, BGP, etc.</td>
+            </tr>
+            <tr>
+                <td><code>scope</code></td>
+                <td>str</td>
+                <td>✓</td>
+                <td>Route scope: UNIVERSE, SITE, LINK, HOST, NOWHERE</td>
+            </tr>
+            <tr>
+                <td><code>table</code></td>
+                <td>str/int</td>
+                <td>✓</td>
+                <td>Routing table: MAIN, LOCAL, DEFAULT, or numeric ID</td>
+            </tr>
+            <tr>
+                <td><code>dst</code></td>
+                <td>str</td>
+                <td>✓</td>
+                <td>Destination network in CIDR notation (e.g., '192.168.1.0/24', '0.0.0.0/0', 'fe80::/64')</td>
+            </tr>
+            <tr>
+                <td><code>dst_len</code></td>
+                <td>int</td>
+                <td>✓</td>
+                <td>Destination prefix length (0-32 for IPv4, 0-128 for IPv6)</td>
+            </tr>
+            <tr>
+                <td><code>flags</code></td>
+                <td>int</td>
+                <td>✓</td>
+                <td>Route flags (bitfield)</td>
+            </tr>
+        </table>
+
+        <h3>Optional Fields</h3>
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>gateway</code></td>
+                <td>str</td>
+                <td>Next-hop gateway IP address</td>
+            </tr>
+            <tr>
+                <td><code>dev</code></td>
+                <td>str</td>
+                <td>Output interface name (e.g., 'eth0', 'wlan0')</td>
+            </tr>
+            <tr>
+                <td><code>dev_index</code></td>
+                <td>int</td>
+                <td>Output interface index</td>
+            </tr>
+            <tr>
+                <td><code>metric</code></td>
+                <td>int</td>
+                <td>Route priority/preference (lower = preferred)</td>
+            </tr>
+            <tr>
+                <td><code>src</code></td>
+                <td>str</td>
+                <td>Source address/network for policy routing (CIDR notation)</td>
+            </tr>
+            <tr>
+                <td><code>prefsrc</code></td>
+                <td>str</td>
+                <td>Preferred source address for outgoing packets</td>
+            </tr>
+            <tr>
+                <td><code>table_id</code></td>
+                <td>int</td>
+                <td>Numeric routing table ID (for tables > 255)</td>
+            </tr>
+            <tr>
+                <td><code>multipath</code></td>
+                <td>List[Dict]</td>
+                <td>Array of nexthop objects for ECMP routes</td>
+            </tr>
+            <tr>
+                <td><code>cacheinfo</code></td>
+                <td>Dict</td>
+                <td>Cache statistics (clntref, last_use, expires, error, used)</td>
+            </tr>
+            <tr>
+                <td><code>unknown_rta_attrs</code></td>
+                <td>List[int]</td>
+                <td>List of unknown RTA_* attribute numbers (if capture_unknown_attrs=True)</td>
+            </tr>
+            <tr>
+                <td><code>unknown_rta_attrs_decoded</code></td>
+                <td>List[Dict]</td>
+                <td>Decoded information about unknown attributes</td>
+            </tr>
+        </table>
+
+        <h3>Multipath Nexthop Structure</h3>
+        <p>When <code>multipath</code> field is present, each nexthop has the following structure:</p>
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>dev_index</code></td>
+                <td>int</td>
+                <td>Output interface index</td>
+            </tr>
+            <tr>
+                <td><code>dev</code></td>
+                <td>str</td>
+                <td>Output interface name (if resolvable)</td>
+            </tr>
+            <tr>
+                <td><code>gateway</code></td>
+                <td>str</td>
+                <td>Next-hop gateway IP (optional)</td>
+            </tr>
+            <tr>
+                <td><code>weight</code></td>
+                <td>int</td>
+                <td>Relative weight for load balancing</td>
+            </tr>
+            <tr>
+                <td><code>flags</code></td>
+                <td>int</td>
+                <td>Nexthop flags</td>
+            </tr>
+        </table>
+
+        <h3>Example Route Entry</h3>
+        <pre><code>{
+  "family": "ipv4",
+  "type": "UNICAST",
+  "protocol": "DHCP",
+  "scope": "UNIVERSE",
+  "table": "MAIN",
+  "dst": "0.0.0.0/0",
+  "dst_len": 0,
+  "gateway": "192.168.1.1",
+  "dev": "eth0",
+  "dev_index": 2,
+  "metric": 100,
+  "prefsrc": "192.168.1.100",
+  "flags": 0
+}</code></pre>
+
+        <h2 id="cli">Command-Line Interface</h2>
+
+        <p>The module can be run directly as a script with various options:</p>
+
+        <h3>Basic Usage</h3>
+        <pre><code># Full JSON output of all routes
+sudo python3 net_route_info.py
+
+# Human-readable summary
+sudo python3 net_route_info.py --summary
+
+# IPv4 routes only
+sudo python3 net_route_info.py --ipv4
+
+# IPv6 routes only
+sudo python3 net_route_info.py --ipv6
+
+# Filter by routing table
+sudo python3 net_route_info.py --table main
+sudo python3 net_route_info.py --table local
+
+# Disable unknown attribute tracking
+sudo python3 net_route_info.py --no-unknown-attrs
+
+# Combine options
+sudo python3 net_route_info.py --ipv4 --table main --summary</code></pre>
+
+        <h3>Command-Line Options</h3>
+        <table>
+            <tr>
+                <th>Option</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>--summary</code></td>
+                <td>Display human-readable summary instead of JSON</td>
+            </tr>
+            <tr>
+                <td><code>--ipv4</code></td>
+                <td>Show only IPv4 routes</td>
+            </tr>
+            <tr>
+                <td><code>--ipv6</code></td>
+                <td>Show only IPv6 routes</td>
+            </tr>
+            <tr>
+                <td><code>--table TABLE</code></td>
+                <td>Filter by routing table name (main, local, etc.)</td>
+            </tr>
+            <tr>
+                <td><code>--no-unknown-attrs</code></td>
+                <td>Disable tracking of unknown RTA_* attributes</td>
+            </tr>
+        </table>
+
+        <h3>Example Output (--summary mode)</h3>
+        <pre><code>======================================================================
+ROUTING TABLE QUERY
+======================================================================
+
+Total routes: 15
+
+Route entries:
+
+  0.0.0.0/0                                via 192.168.1.1          dev eth0       metric 100 [DHCP]
+  192.168.1.0/24                           dev eth0       [KERNEL]
+  192.168.1.100/32                         dev eth0       [KERNEL]
+  fe80::/64                                dev eth0       [KERNEL]
+  ::1/128                                  dev lo         [KERNEL]</code></pre>
+
+        <h2 id="technical">Technical Details</h2>
+
+        <h3>RTNetlink Protocol</h3>
+        <p>
+            The module communicates with the Linux kernel using the RTNetlink protocol, part of the Netlink socket family. 
+            RTNetlink provides a mechanism for querying and modifying routing tables, IP addresses, and network interfaces.
+        </p>
+
+        <h4>Message Flow</h4>
+        <ol>
+            <li><strong>Socket Creation:</strong> Opens a <code>NETLINK_ROUTE</code> socket</li>
+            <li><strong>Request Construction:</strong> Builds <code>RTM_GETROUTE</code> request with optional family filter</li>
+            <li><strong>Kernel Query:</strong> Sends request to kernel and waits for response</li>
+            <li><strong>Response Processing:</strong> Parses <code>RTM_NEWROUTE</code> messages</li>
+            <li><strong>Attribute Extraction:</strong> Extracts route attributes (RTA_DST, RTA_GATEWAY, etc.)</li>
+            <li><strong>Data Conversion:</strong> Converts C structures to Python dictionaries</li>
+        </ol>
+
+        <h3>CFFI Integration</h3>
+        <p>
+            The module uses CFFI's <code>ffi.verify()</code> mode, which compiles C code at runtime during first import:
+        </p>
+        <ul>
+            <li>C code is compiled into a shared library on first import</li>
+            <li>Cached in <code>__pycache__</code> for subsequent runs</li>
+            <li>Provides near-native performance with Python convenience</li>
+            <li>Type-safe interface through CFFI's type system</li>
+        </ul>
+
+        <div class="info">
+            <strong>Performance Note:</strong> First import compiles C code (~1-2 seconds). Subsequent imports use cached library (~0.1 seconds).
+            Route queries execute in microseconds after socket setup.
+        </div>
+
+        <h3>Memory Management</h3>
+        <ul>
+            <li><strong>C Side:</strong> Manual memory management with explicit <code>malloc()</code> and <code>free()</code></li>
+            <li><strong>Python Side:</strong> Automatic garbage collection of Python objects</li>
+            <li><strong>Bridge:</strong> CFFI handles memory lifecycle for data crossing Python-C boundary</li>
+            <li><strong>Safety:</strong> Context manager ensures socket cleanup even on exceptions</li>
+        </ul>
+
+        <h3>Interface Name Resolution</h3>
+        <p>
+            The module uses the C library function <code>if_indextoname()</code> to convert interface indices to names.
+            This is wrapped in the custom <code>nl_get_ifname()</code> function that also tries reading from 
+            <code>/sys/class/net/</code> as a fallback.
+        </p>
+
+        <h3>Supported Route Attributes (RTA_*)</h3>
+        <p>The module explicitly handles these RTNetlink route attributes:</p>
+        <table>
+            <tr>
+                <th>Attribute</th>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+            <tr><td>RTA_DST</td><td>1</td><td>Destination network</td></tr>
+            <tr><td>RTA_SRC</td><td>2</td><td>Source network (policy routing)</td></tr>
+            <tr><td>RTA_OIF</td><td>4</td><td>Output interface index</td></tr>
+            <tr><td>RTA_GATEWAY</td><td>5</td><td>Next-hop gateway</td></tr>
+            <tr><td>RTA_PRIORITY</td><td>6</td><td>Route metric/preference</td></tr>
+            <tr><td>RTA_PREFSRC</td><td>7</td><td>Preferred source address</td></tr>
+            <tr><td>RTA_MULTIPATH</td><td>9</td><td>Multipath nexthops (ECMP)</td></tr>
+            <tr><td>RTA_CACHEINFO</td><td>12</td><td>Cache statistics</td></tr>
+            <tr><td>RTA_TABLE</td><td>15</td><td>Routing table ID (>255)</td></tr>
+        </table>
+
+        <p>Unknown attributes are tracked if <code>capture_unknown_attrs=True</code>.</p>
+
+        <h3>Limitations</h3>
+        <ul>
+            <li><strong>Linux Only:</strong> Requires Linux kernel with RTNetlink (2.6+)</li>
+            <li><strong>Root Required:</strong> Needs CAP_NET_ADMIN capability or root privileges</li>
+            <li><strong>Read-Only:</strong> Query operations only; cannot modify routes</li>
+            <li><strong>Snapshot:</strong> Returns point-in-time snapshot; no real-time monitoring</li>
+            <li><strong>First Import Delay:</strong> 1-2 second compilation delay on first import</li>
+        </ul>
+
+        <h3>Error Handling</h3>
+        <p>The module raises clear exceptions for common error conditions:</p>
+        <table>
+            <tr>
+                <th>Exception</th>
+                <th>Cause</th>
+                <th>Solution</th>
+            </tr>
+            <tr>
+                <td>RuntimeError (Python version)</td>
+                <td>Python < 3.8</td>
+                <td>Upgrade to Python 3.8+</td>
+            </tr>
+            <tr>
+                <td>RuntimeError (setuptools)</td>
+                <td>Python 3.12+ without setuptools</td>
+                <td>Install setuptools: <code>pip install setuptools</code></td>
+            </tr>
+            <tr>
+                <td>RuntimeError (socket)</td>
+                <td>Failed to create netlink socket</td>
+                <td>Check kernel support and permissions</td>
+            </tr>
+            <tr>
+                <td>RuntimeError (send/receive)</td>
+                <td>Communication failure with kernel</td>
+                <td>Check system logs; possible kernel issue</td>
+            </tr>
+            <tr>
+                <td>PermissionError</td>
+                <td>Insufficient privileges</td>
+                <td>Run with sudo or add CAP_NET_ADMIN capability</td>
+            </tr>
+            <tr>
+                <td>ValueError</td>
+                <td>Invalid family parameter</td>
+                <td>Use 'ipv4', 'ipv6', or None</td>
+            </tr>
+        </table>
+
+        <h3>Comparison with Alternatives</h3>
+        <table>
+            <tr>
+                <th>Approach</th>
+                <th>Pros</th>
+                <th>Cons</th>
+            </tr>
+            <tr>
+                <td><strong>net_route_info.py</strong></td>
+                <td>Direct kernel access, complete metadata, high performance, type-safe</td>
+                <td>Compilation required, Linux-only, requires privileges</td>
+            </tr>
+            <tr>
+                <td><code>ip route show</code></td>
+                <td>No coding required, human-readable</td>
+                <td>Text parsing needed, limited programmatic use, incomplete metadata</td>
+            </tr>
+            <tr>
+                <td>pyroute2</td>
+                <td>Pure Python, comprehensive netlink support</td>
+                <td>Slower, more complex API, larger dependency</td>
+            </tr>
+            <tr>
+                <td>/proc/net/route</td>
+                <td>No privileges, simple text format</td>
+                <td>IPv4 only, incomplete information, deprecated interface</td>
+            </tr>
+        </table>
+
+        <h2>Conclusion</h2>
+        <p>
+            <strong>net_route_info.py</strong> provides a high-performance, type-safe interface to Linux routing tables through 
+            direct kernel communication via RTNetlink. Its hybrid C/Python architecture delivers native performance while 
+            maintaining Python's ease of use. The module is ideal for network monitoring tools, diagnostic utilities, 
+            SDN controllers, and any application requiring programmatic access to routing information.
+        </p>
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee; color: #666; font-size: 0.9em;">
+            <p><strong>Module:</strong> net_route_info.py</p>
+            <p><strong>Documentation Generated:</strong> 2025</p>
+            <p><strong>Python Version:</strong> 3.8+</p>
+            <p><strong>Platform:</strong> Linux (2.6+)</p>
+        </div>
+    </div>
+</body>
+</html>

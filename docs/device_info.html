@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Interface Monitoring Tool - Comprehensive Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            margin: -20px -20px 30px -20px;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        nav {
+            background: #2c3e50;
+            padding: 15px;
+            margin: -20px -20px 30px -20px;
+            border-radius: 0 0 8px 8px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        section {
+            margin-bottom: 50px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .danger-box {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre code {
+            background: transparent;
+            padding: 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+        
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #667eea30;
+        }
+        
+        .feature-card h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .command {
+            background: #2d2d2d;
+            color: #7ec699;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            display: block;
+            margin: 10px 0;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .badge-required {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .badge-recommended {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .badge-optional {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .badge-version {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin: 50px -20px -20px -20px;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .toc {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .toc h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .toc li {
+            padding: 5px 0;
+        }
+        
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+            
+            nav {
+                display: none;
+            }
+            
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Network Interface Monitoring Tool</h1>
+            <p>Complete Guide for RTNetlink Interface Query System</p>
+        </header>
+        
+        <nav>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#maintenance">Maintenance</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#reference">API Reference</a></li>
+            </ul>
+        </nav>
+
+        <section id="overview">
+            <h2>📋 Overview</h2>
+            
+            <p>This tool provides comprehensive network interface monitoring and analysis using Linux RTNetlink and Generic Netlink protocols. It leverages CFFI (C Foreign Function Interface) to directly interface with kernel networking subsystems, offering detailed insights into network configurations, addresses, and specialized interface types.</p>
+            
+            <div class="info-box">
+                <strong>Key Capabilities:</strong>
+                <ul>
+                    <li>Real-time network interface status monitoring</li>
+                    <li>Complete IP address information including IPv6 DAD states</li>
+                    <li>Bridge configuration and STP details</li>
+                    <li>WireGuard VPN interface monitoring via Generic Netlink</li>
+                    <li>VLAN, veth, and GENEVE virtual interface support</li>
+                    <li>Hardware offload capabilities detection</li>
+                    <li>DPLL (Digital Phase-Locked Loop) pin synchronization info</li>
+                </ul>
+            </div>
+            
+            <h3>Why This Tool?</h3>
+            <p>Traditional tools like <code>ip</code> and <code>ifconfig</code> provide basic interface information, but this tool offers:</p>
+            <ul>
+                <li><strong>Programmatic access:</strong> JSON output for automation and integration</li>
+                <li><strong>Deep inspection:</strong> Access to all kernel-provided interface attributes</li>
+                <li><strong>WireGuard insights:</strong> Detailed peer information without external tools</li>
+                <li><strong>Address readiness:</strong> IPv6 DAD state and address operational status</li>
+                <li><strong>Bridge topology:</strong> Complete STP and port state information</li>
+            </ul>
+        </section>
+
+        <section id="installation">
+            <h2>💾 Installation</h2>
+            
+            <h3>System Requirements</h3>
+            
+            <table>
+                <tr>
+                    <th>Component</th>
+                    <th>Version</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>Python</td>
+                    <td>3.8 or higher</td>
+                    <td><span class="badge badge-required">Required</span></td>
+                </tr>
+                <tr>
+                    <td>Linux Kernel</td>
+                    <td>2.6+ (5.0+ recommended)</td>
+                    <td><span class="badge badge-required">Required</span></td>
+                </tr>
+                <tr>
+                    <td>CFFI</td>
+                    <td>1.0.0 or higher</td>
+                    <td><span class="badge badge-required">Required</span></td>
+                </tr>
+                <tr>
+                    <td>setuptools</td>
+                    <td>Latest</td>
+                    <td><span class="badge badge-required">Required (Python 3.12+)</span></td>
+                </tr>
+                <tr>
+                    <td>Root/sudo access</td>
+                    <td>-</td>
+                    <td><span class="badge badge-required">Required</span></td>
+                </tr>
+            </table>
+            
+            <h3>Quick Installation</h3>
+            
+            <div class="command">$ pip install cffi setuptools</div>
+            
+            <p>Or for system-wide installation:</p>
+            
+            <div class="command">$ sudo pip3 install cffi setuptools</div>
+            
+            <h3>Verification</h3>
+            
+            <p>Verify your Python version:</p>
+            <pre><code>$ python3 --version
+Python 3.8.0 (or higher)</code></pre>
+            
+            <p>Check if CFFI is installed:</p>
+            <pre><code>$ python3 -c "import cffi; print(cffi.__version__)"
+1.15.0</code></pre>
+            
+            <div class="warning-box">
+                <strong>⚠️ Python 3.12+ Notice:</strong><br>
+                Python 3.12 and higher require <code>setuptools</code> to be explicitly installed for CFFI to work properly. The script will check for this and provide a clear error message if it's missing.
+            </div>
+            
+            <h3>File Setup</h3>
+            
+            <ol>
+                <li>Save the script as <code>device_info.py</code></li>
+                <li>Make it executable:
+                    <div class="command">$ chmod +x device_info.py</div>
+                </li>
+                <li>Verify it runs:
+                    <div class="command">$ sudo python3 device_info.py --help</div>
+                </li>
+            </ol>
+        </section>
+
+        <section id="usage">
+            <h2>🚀 Usage</h2>
+            
+            <h3>Basic Usage Patterns</h3>
+            
+            <h4>1. Full JSON Output (Default)</h4>
+            <p>Get complete interface information in JSON format:</p>
+            <pre><code>$ sudo python3 device_info.py</code></pre>
+            
+            <p>This outputs a comprehensive JSON structure containing all detected interfaces, their configurations, addresses, and special attributes.</p>
+            
+            <h4>2. Extended Interface Details</h4>
+            <p>Show human-readable interface information with extensive details:</p>
+            <pre><code>$ sudo python3 device_info.py --extended</code></pre>
+            
+            <p>Output includes:</p>
+            <ul>
+                <li>Interface name, index, and type</li>
+                <li>MAC address and MTU</li>
+                <li>Operational and administrative state</li>
+                <li>Carrier status and change counts</li>
+                <li>Hardware offload capabilities</li>
+                <li>Bridge, VLAN, or WireGuard specific configuration</li>
+            </ul>
+            
+            <h4>3. Detailed Address Information</h4>
+            <p>Focus on IP address configuration and readiness:</p>
+            <pre><code>$ sudo python3 device_info.py --addresses</code></pre>
+            
+            <p>Shows address-specific details:</p>
+            <ul>
+                <li>Readiness status (✓=ready, ⋯=pending, ✗=failed, ○=down)</li>
+                <li>IPv4 and IPv6 addresses with prefix lengths</li>
+                <li>Network, netmask, and broadcast information</li>
+                <li>Address scope and flags</li>
+                <li>IPv6 DAD (Duplicate Address Detection) state</li>
+                <li>Address lifetime information</li>
+                <li>Configuration protocol (manual, SLAAC, kernel)</li>
+            </ul>
+            
+            <h4>4. WireGuard Interfaces Only</h4>
+            <p>Filter output to show only WireGuard interfaces with peer details:</p>
+            <pre><code>$ sudo python3 device_info.py --wireguard</code></pre>
+            
+            <p>Displays:</p>
+            <ul>
+                <li>WireGuard interface configuration</li>
+                <li>Listen port and fwmark settings</li>
+                <li>Public key information</li>
+                <li>Peer count and individual peer details</li>
+                <li>Allowed IPs per peer</li>
+                <li>Latest handshake times</li>
+                <li>Transfer statistics per peer</li>
+            </ul>
+            
+            <h4>5. Summary View</h4>
+            <p>Condensed view of special interfaces (bridges, VLANs, WireGuard, veth):</p>
+            <pre><code>$ sudo python3 device_info.py --summary</code></pre>
+            
+            <div class="success-box">
+                <strong>💡 Pro Tip:</strong> Pipe JSON output to <code>jq</code> for advanced filtering:
+                <pre><code>$ sudo python3 device_info.py | jq '.eth0.addresses'</code></pre>
+            </div>
+            
+            <h3>Common Use Cases</h3>
+            
+            <h4>Monitoring IPv6 Address Configuration</h4>
+            <pre><code># Check if IPv6 addresses have completed DAD
+$ sudo python3 device_info.py --addresses | grep -A 10 "ipv6"
+
+# Get readiness status of all addresses
+$ sudo python3 device_info.py | jq '.[] | .addresses[] | {addr: .address, ready: .readiness}'</code></pre>
+            
+            <h4>Bridge Management</h4>
+            <pre><code># View all bridge configurations
+$ sudo python3 device_info.py --summary | grep -i bridge
+
+# Get detailed bridge STP status
+$ sudo python3 device_info.py --extended | grep -A 20 "Bridge Master"</code></pre>
+            
+            <h4>WireGuard Monitoring</h4>
+            <pre><code># Check WireGuard peer status
+$ sudo python3 device_info.py --wireguard
+
+# Monitor peer handshakes
+$ sudo python3 device_info.py | jq '.wg0.wireguard.peers[] | {endpoint: .endpoint, handshake: .latest_handshake_str}'</code></pre>
+            
+            <h4>Automated Monitoring</h4>
+            <pre><code>#!/bin/bash
+# Monitor for interface changes every 5 seconds
+
+while true; do
+    sudo python3 device_info.py > /tmp/interfaces_new.json
+    if ! diff -q /tmp/interfaces_old.json /tmp/interfaces_new.json &>/dev/null; then
+        echo "$(date): Interface configuration changed"
+        diff /tmp/interfaces_old.json /tmp/interfaces_new.json
+    fi
+    mv /tmp/interfaces_new.json /tmp/interfaces_old.json
+    sleep 5
+done</code></pre>
+        </section>
+
+        <section id="features">
+            <h2>✨ Features</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🔗 RTNetlink Integration</h4>
+                    <p>Direct kernel interface using RTM_GETLINK and RTM_GETADDR messages for low-level network configuration access.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔐 WireGuard Support</h4>
+                    <p>Generic Netlink integration provides detailed WireGuard interface information including peer configurations and statistics.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🌉 Bridge Monitoring</h4>
+                    <p>Complete bridge configuration including STP state, VLAN filtering, multicast snooping, and port attributes.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📡 Address Readiness</h4>
+                    <p>Smart address state computation considering IPv6 DAD, interface operational state, and address flags.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>⚡ Hardware Offload</h4>
+                    <p>Detection and reporting of GSO, GRO, TSO capabilities and limits for network performance tuning.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🏷️ VLAN & Virtual Interfaces</h4>
+                    <p>Support for VLAN, veth, GENEVE, and other virtual interface types with detailed configuration.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🎯 DPLL Synchronization</h4>
+                    <p>Hardware time synchronization information including pin types, states, and frequency adjustments.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📊 Comprehensive Statistics</h4>
+                    <p>Interface counters, carrier changes, multicast groups, and historical event tracking.</p>
+                </div>
+            </div>
+            
+            <h3>Supported Interface Types</h3>
+            
+            <table>
+                <tr>
+                    <th>Interface Type</th>
+                    <th>Support Level</th>
+                    <th>Key Features</th>
+                </tr>
+                <tr>
+                    <td>Physical (eth*, enp*)</td>
+                    <td><span class="badge badge-version">Full</span></td>
+                    <td>Hardware offload, carrier detection, statistics</td>
+                </tr>
+                <tr>
+                    <td>Bridge (br*)</td>
+                    <td><span class="badge badge-version">Full</span></td>
+                    <td>STP, VLAN filtering, multicast, port configuration</td>
+                </tr>
+                <tr>
+                    <td>WireGuard (wg*)</td>
+                    <td><span class="badge badge-version">Full</span></td>
+                    <td>Peers, allowed IPs, handshakes, transfer stats</td>
+                </tr>
+                <tr>
+                    <td>VLAN (*.*, vlan*)</td>
+                    <td><span class="badge badge-version">Full</span></td>
+                    <td>VLAN ID, protocol, parent interface</td>
+                </tr>
+                <tr>
+                    <td>veth</td>
+                    <td><span class="badge badge-version">Full</span></td>
+                    <td>Peer interface detection</td>
+                </tr>
+                <tr>
+                    <td>GENEVE</td>
+                    <td><span class="badge badge-version">Full</span></td>
+                    <td>VNI, remote endpoint, port configuration</td>
+                </tr>
+                <tr>
+                    <td>Loopback (lo)</td>
+                    <td><span class="badge badge-version">Full</span></td>
+                    <td>Standard interface attributes</td>
+                </tr>
+                <tr>
+                    <td>Bonding (bond*)</td>
+                    <td><span class="badge badge-version">Partial</span></td>
+                    <td>Basic interface info, slave detection</td>
+                </tr>
+            </table>
+            
+            <h3>Comprehensive Attribute Decoding</h3>
+            
+            <p>The tool decodes <strong>64+ IFLA attributes</strong> and <strong>11+ IFA attributes</strong>, including:</p>
+            
+            <h4>IFLA (Interface Link Attributes)</h4>
+            <ul>
+                <li><strong>Basic:</strong> IFNAME, MTU, ADDRESS, BROADCAST, OPERSTATE, TXQLEN</li>
+                <li><strong>Relationships:</strong> MASTER, LINK, NET_NS_PID, PARENT_DEV_NAME</li>
+                <li><strong>Offload:</strong> GSO_MAX_SIZE, TSO_MAX_SIZE, GRO_MAX_SIZE, XDP</li>
+                <li><strong>Statistics:</strong> STATS64, CARRIER_CHANGES, CARRIER_UP_COUNT</li>
+                <li><strong>Advanced:</strong> LINKINFO, AF_SPEC, PROTINFO, VFINFO_LIST</li>
+            </ul>
+            
+            <h4>IFA (Interface Address Attributes)</h4>
+            <ul>
+                <li><strong>Addresses:</strong> ADDRESS, LOCAL, BROADCAST, ANYCAST</li>
+                <li><strong>Properties:</strong> FLAGS, LABEL, CACHEINFO, RT_PRIORITY</li>
+                <li><strong>Protocol:</strong> PROTO (configuration source)</li>
+            </ul>
+        </section>
+
+        <section id="architecture">
+            <h2>🏗️ Architecture</h2>
+            
+            <h3>System Design</h3>
+            
+            <p>The tool uses a layered architecture to interact with the Linux kernel:</p>
+            
+            <pre><code>┌─────────────────────────────────────────┐
+│          Python Application             │
+│  (Argument Parsing, JSON Output, etc.)  │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│          CFFI Interface Layer           │
+│     (Python ↔ C Type Conversion)        │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│          C Library Functions            │
+│  - create_rtnetlink_socket()            │
+│  - query_links()                        │
+│  - query_addresses()                    │
+│  - query_wireguard_info()               │
+│  - parse_ifla_attributes()              │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│         Linux Kernel Netlink            │
+│  RTNetlink  │  Generic Netlink          │
+│  (RTM_*)    │  (GENL_*)                 │
+└─────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│         Network Subsystem               │
+│  Interfaces, Addresses, Routing, etc.   │
+└─────────────────────────────────────────┘</code></pre>
+            
+            <h3>Key Components</h3>
+            
+            <h4>1. C Library Integration (Lines 57-5100)</h4>
+            <p>Comprehensive C code embedded in Python that handles:</p>
+            <ul>
+                <li><strong>Socket Management:</strong> Creates and manages Netlink sockets</li>
+                <li><strong>Message Construction:</strong> Builds RTNetlink and Generic Netlink messages</li>
+                <li><strong>Response Parsing:</strong> Decodes kernel responses with proper attribute handling</li>
+                <li><strong>Type-Specific Decoders:</strong> Specialized parsers for bridges, WireGuard, VLAN, etc.</li>
+            </ul>
+            
+            <h4>2. CFFI Builder (Lines 5102-5150)</h4>
+            <p>Dynamic compilation of C code with Python binding generation:</p>
+            <pre><code>ffi = FFI()
+ffi.cdef("""
+    typedef struct { ... } response_buffer_t;
+    int create_rtnetlink_socket(void);
+    // ... function declarations
+""")
+
+# Compile C code at runtime
+lib = ffi.verify(C_SOURCE, libraries=[], extra_compile_args=['-O2'])</code></pre>
+            
+            <h4>3. Python Interface Layer (Lines 5150-5300)</h4>
+            <p>High-level functions that:</p>
+            <ul>
+                <li>Call C functions through CFFI</li>
+                <li>Parse JSON responses from C code</li>
+                <li>Apply additional Python-side logic</li>
+                <li>Compute derived attributes (readiness, network info)</li>
+            </ul>
+            
+            <h4>4. Output Formatters (Lines 5400-5750)</h4>
+            <p>Multiple presentation modes:</p>
+            <ul>
+                <li>JSON serialization for programmatic access</li>
+                <li>Human-readable extended format</li>
+                <li>Address-focused detailed view</li>
+                <li>Summary reports for special interfaces</li>
+            </ul>
+            
+            <h3>Data Flow</h3>
+            
+            <ol>
+                <li><strong>Initialization:</strong> CFFI compiles C code and creates Python bindings</li>
+                <li><strong>Socket Creation:</strong> Opens Netlink socket with appropriate protocols</li>
+                <li><strong>Query Dispatch:</strong> Sends RTM_GETLINK and RTM_GETADDR requests</li>
+                <li><strong>Kernel Response:</strong> Receives and buffers Netlink messages</li>
+                <li><strong>Attribute Parsing:</strong> Decodes nested TLV (Type-Length-Value) structures</li>
+                <li><strong>JSON Assembly:</strong> C code builds JSON strings for easy Python consumption</li>
+                <li><strong>Python Processing:</strong> Enriches data with computed fields</li>
+                <li><strong>Output Generation:</strong> Formats according to user-selected mode</li>
+            </ol>
+            
+            <h3>Memory Management</h3>
+            
+            <div class="info-box">
+                <strong>Safety Features:</strong>
+                <ul>
+                    <li>Response buffers automatically grow to accommodate large messages</li>
+                    <li>Buffer capacity is tracked and never exceeded</li>
+                    <li>All C-allocated memory is properly freed</li>
+                    <li>CFFI handles Python ↔ C memory lifetime correctly</li>
+                </ul>
+            </div>
+            
+            <h3>Attribute Decoding Strategy</h3>
+            
+            <p>The tool employs a comprehensive attribute decoding system:</p>
+            
+            <ol>
+                <li><strong>Known Attributes:</strong> Explicitly decoded with proper type handling</li>
+                <li><strong>Nested Attributes:</strong> Recursively parsed (e.g., IFLA_LINKINFO, IFLA_AF_SPEC)</li>
+                <li><strong>Binary Data:</strong> Base64-encoded or hex-formatted for safe transport</li>
+                <li><strong>Unknown Attributes:</strong> Recorded but not fully decoded</li>
+                <li><strong>Type-Specific:</strong> Bridge, WireGuard, VLAN use specialized decoders</li>
+            </ol>
+        </section>
+
+        <section id="maintenance">
+            <h2>🔧 Maintenance</h2>
+            
+            <h3>Regular Maintenance Tasks</h3>
+            
+            <h4>1. Update Dependency Versions</h4>
+            <pre><code># Update CFFI
+$ pip install --upgrade cffi
+
+# Update setuptools (Python 3.12+)
+$ pip install --upgrade setuptools
+
+# Verify versions
+$ pip list | grep -E "(cffi|setuptools)"</code></pre>
+            
+            <h4>2. Check Kernel Compatibility</h4>
+            <p>When upgrading your kernel, verify that new attributes are properly supported:</p>
+            <pre><code># Check kernel version
+$ uname -r
+
+# Test the script
+$ sudo python3 device_info.py --extended
+
+# Look for "unknown_attrs" in output
+$ sudo python3 device_info.py | jq '.[] | select(.unknown_attrs != null)'</code></pre>
+            
+            <h4>3. Monitor for Deprecation Warnings</h4>
+            <pre><code># Run with warnings enabled
+$ python3 -W all device_info.py > /dev/null</code></pre>
+            
+            <h3>Extending the Tool</h3>
+            
+            <h4>Adding New IFLA Attributes</h4>
+            
+            <p>When new kernel versions introduce new IFLA_* constants:</p>
+            
+            <ol>
+                <li>Find the constant definition in <code>/usr/include/linux/if_link.h</code></li>
+                <li>Add it to the C code's IFLA_ATTR_NAMES array (around line 300)</li>
+                <li>Implement decoding logic in <code>parse_ifla_attributes()</code> (around line 1500)</li>
+                <li>Update the Python post-processing if needed (around line 5200)</li>
+                <li>Document it in the reference guide</li>
+            </ol>
+            
+            <p>Example for a hypothetical IFLA_NEW_FEATURE (65):</p>
+            
+            <pre><code>// In C_SOURCE - Add to IFLA_ATTR_NAMES
+[65] = "IFLA_NEW_FEATURE",
+
+// In parse_ifla_attributes() - Add decode case
+case 65:  // IFLA_NEW_FEATURE
+    if (rta_len >= sizeof(uint32_t)) {
+        uint32_t value = *(uint32_t*)RTA_DATA(rta);
+        append_comma(info_json);
+        append_to_buffer(info_json, "\"new_feature\": %u", value);
+    }
+    break;</code></pre>
+            
+            <h4>Adding New Interface Types</h4>
+            
+            <p>To support a new interface kind (e.g., "newtype"):</p>
+            
+            <ol>
+                <li>Add kind detection in IFLA_LINKINFO parsing (around line 2000)</li>
+                <li>Create a type-specific attribute parser</li>
+                <li>Add Python-side processing if needed</li>
+                <li>Update output formatters</li>
+            </ol>
+            
+            <h4>Debugging New Features</h4>
+            
+            <p>Enable verbose debugging during development:</p>
+            
+            <pre><code># Add debug output in C code (temporary)
+fprintf(stderr, "DEBUG: Processing attribute type %d, len %d\n", 
+        rta_type, rta_len);
+
+# Or use Python logging
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.debug(f"Interface: {if_name}, Data: {data}")</code></pre>
+            
+            <h3>Code Organization Best Practices</h3>
+            
+            <div class="warning-box">
+                <strong>⚠️ Important Guidelines:</strong>
+                <ul>
+                    <li><strong>Keep C and Python synchronized:</strong> Struct definitions must match between C code and CFFI cdef</li>
+                    <li><strong>Handle padding:</strong> Use <code>__attribute__((packed))</code> for structs read directly from kernel</li>
+                    <li><strong>Version guards:</strong> Check kernel version before using newer attributes</li>
+                    <li><strong>Error handling:</strong> Always check return values from C functions</li>
+                    <li><strong>Memory safety:</strong> Free allocated memory before returning from C functions</li>
+                </ul>
+            </div>
+            
+            <h3>Testing Strategy</h3>
+            
+            <h4>Unit Testing</h4>
+            <p>Create test scenarios for different interface configurations:</p>
+            
+            <pre><code>#!/bin/bash
+# test_script.sh - Comprehensive testing
+
+# Test 1: Basic execution
+echo "Test 1: Basic execution"
+sudo python3 device_info.py > /tmp/test1.json || exit 1
+
+# Test 2: Validate JSON
+echo "Test 2: JSON validation"
+jq empty /tmp/test1.json || exit 1
+
+# Test 3: Check for required fields
+echo "Test 3: Required fields"
+jq -e '.lo.ifname == "lo"' /tmp/test1.json || exit 1
+
+# Test 4: All output modes
+for mode in "--extended" "--addresses" "--summary"; do
+    echo "Test 4: Mode $mode"
+    sudo python3 device_info.py $mode > /dev/null || exit 1
+done
+
+echo "All tests passed!"</code></pre>
+            
+            <h4>Integration Testing</h4>
+            <p>Test with various interface configurations:</p>
+            
+            <pre><code># Create test VLAN
+sudo ip link add link eth0 name eth0.100 type vlan id 100
+sudo python3 device_info.py | jq '.["eth0.100"]'
+sudo ip link del eth0.100
+
+# Create test bridge
+sudo ip link add br0 type bridge
+sudo python3 device_info.py --summary | grep br0
+sudo ip link del br0
+
+# Create veth pair
+sudo ip link add veth0 type veth peer name veth1
+sudo python3 device_info.py | jq '.veth0.veth'
+sudo ip link del veth0</code></pre>
+            
+            <h3>Performance Monitoring</h3>
+            
+            <p>Track execution time and resource usage:</p>
+            
+            <pre><code># Time the execution
+$ time sudo python3 device_info.py > /dev/null
+
+# Monitor memory usage
+$ /usr/bin/time -v sudo python3 device_info.py > /dev/null 2>&1 | \
+  grep -E "(Maximum resident set size|User time|System time)"
+
+# Profile the script
+$ sudo python3 -m cProfile -o profile.stats device_info.py
+$ python3 -c "import pstats; p = pstats.Stats('profile.stats'); p.sort_stats('cumulative').print_stats(20)"</code></pre>
+            
+            <h3>Documentation Updates</h3>
+            
+            <p>When modifying the tool, update:</p>
+            <ul>
+                <li>Docstring at the top of the file</li>
+                <li>This guide (HTML)</li>
+                <li>IFLA_IFA_REFERENCE.md for new attributes</li>
+                <li>Usage examples for new features</li>
+                <li>Change log with version notes</li>
+            </ul>
+        </section>
+
+        <section id="troubleshooting">
+            <h2>🔍 Troubleshooting</h2>
+            
+            <h3>Common Issues and Solutions</h3>
+            
+            <h4>Issue: Permission Denied</h4>
+            <div class="danger-box">
+                <strong>Error:</strong> <code>OSError: [Errno 13] Permission denied</code>
+            </div>
+            
+            <p><strong>Solution:</strong> The script requires root access to create Netlink sockets:</p>
+            <pre><code>$ sudo python3 device_info.py</code></pre>
+            
+            <p>Or add CAP_NET_ADMIN capability:</p>
+            <pre><code>$ sudo setcap cap_net_admin+ep $(which python3)
+$ python3 device_info.py  # No sudo needed</code></pre>
+            
+            <h4>Issue: CFFI Import Error</h4>
+            <div class="danger-box">
+                <strong>Error:</strong> <code>ModuleNotFoundError: No module named 'cffi'</code>
+            </div>
+            
+            <p><strong>Solution:</strong> Install CFFI:</p>
+            <pre><code>$ pip install cffi
+# Or system-wide
+$ sudo pip3 install cffi</code></pre>
+            
+            <h4>Issue: Python 3.12+ Setuptools Error</h4>
+            <div class="danger-box">
+                <strong>Error:</strong> <code>RuntimeError: Python 3.12+ requires setuptools for CFFI</code>
+            </div>
+            
+            <p><strong>Solution:</strong> Install setuptools:</p>
+            <pre><code>$ pip install setuptools</code></pre>
+            
+            <h4>Issue: Old Python Version</h4>
+            <div class="danger-box">
+                <strong>Error:</strong> <code>RuntimeError: Python 3.8 or higher is required</code>
+            </div>
+            
+            <p><strong>Solution:</strong> Upgrade Python or use a virtual environment:</p>
+            <pre><code># Check your Python version
+$ python3 --version
+
+# Use a newer Python if available
+$ python3.10 device_info.py
+
+# Or install a newer Python version
+$ sudo apt-get install python3.10  # Debian/Ubuntu
+$ sudo yum install python310       # RHEL/CentOS</code></pre>
+            
+            <h4>Issue: Compilation Errors</h4>
+            <div class="danger-box">
+                <strong>Error:</strong> <code>CompileError: command 'gcc' failed</code>
+            </div>
+            
+            <p><strong>Solution:</strong> Install build essentials and kernel headers:</p>
+            <pre><code># Debian/Ubuntu
+$ sudo apt-get install build-essential linux-headers-$(uname -r)
+
+# RHEL/CentOS
+$ sudo yum groupinstall "Development Tools"
+$ sudo yum install kernel-devel
+
+# Verify gcc is installed
+$ gcc --version</code></pre>
+            
+            <h4>Issue: Empty or Incomplete Output</h4>
+            
+            <p><strong>Possible causes and solutions:</strong></p>
+            
+            <ul>
+                <li><strong>Netlink socket timeout:</strong> Increase timeout in C code (SOCKET_TIMEOUT)</li>
+                <li><strong>Buffer overflow:</strong> Increase INITIAL_BUFFER_SIZE or MAX_BUFFER_SIZE</li>
+                <li><strong>Kernel version too old:</strong> Some attributes require newer kernels</li>
+                <li><strong>Namespace isolation:</strong> Run in appropriate network namespace</li>
+            </ul>
+            
+            <pre><code># Check for kernel version requirements
+$ uname -r
+$ grep -A 5 "IFLA_.*Min Kernel" IFLA_IFA_REFERENCE.md
+
+# Run in specific namespace
+$ sudo ip netns exec myns python3 device_info.py</code></pre>
+            
+            <h4>Issue: WireGuard Information Not Showing</h4>
+            
+            <p><strong>Checklist:</strong></p>
+            <ol>
+                <li>Verify WireGuard module is loaded: <code>lsmod | grep wireguard</code></li>
+                <li>Check if WireGuard interfaces exist: <code>wg show</code></li>
+                <li>Ensure Generic Netlink family is registered: <code>genl-ctrl-list | grep wireguard</code></li>
+                <li>Use <code>--wireguard</code> flag to isolate WireGuard output</li>
+            </ol>
+            
+            <pre><code># Load WireGuard module
+$ sudo modprobe wireguard
+
+# Create test interface
+$ sudo ip link add dev wg0 type wireguard
+
+# Run script
+$ sudo python3 device_info.py --wireguard</code></pre>
+            
+            <h4>Issue: Unknown Attributes Appearing</h4>
+            
+            <p>If you see <code>unknown_attrs</code> in the output, it means the kernel is providing attributes that aren't decoded by the script.</p>
+            
+            <p><strong>Investigation steps:</strong></p>
+            <ol>
+                <li>Note the attribute numbers</li>
+                <li>Check <code>/usr/include/linux/if_link.h</code> for the constant definition</li>
+                <li>Add the attribute to IFLA_ATTR_NAMES in the C code</li>
+                <li>Implement proper decoding</li>
+            </ol>
+            
+            <pre><code># Find attribute definition
+$ grep "IFLA_.*=" /usr/include/linux/if_link.h | grep -E "\s+$(unknown_attr_num)\b"</code></pre>
+            
+            <h4>Issue: CFFI Struct Padding Errors</h4>
+            
+            <p>If you encounter alignment or padding issues with C structs:</p>
+            
+            <div class="info-box">
+                <strong>Solution:</strong> Add <code>__attribute__((packed))</code> to struct definitions, especially for:
+                <ul>
+                    <li>Structs read directly from kernel buffers</li>
+                    <li>Netlink message headers</li>
+                    <li>Attribute structures</li>
+                </ul>
+            </div>
+            
+            <pre><code>// Correct struct definition
+typedef struct __attribute__((packed)) {
+    uint16_t rta_len;
+    uint16_t rta_type;
+} rtattr_t;</code></pre>
+            
+            <h3>Debugging Techniques</h3>
+            
+            <h4>Enable Verbose Output</h4>
+            
+            <p>Modify the C code temporarily to add debug prints:</p>
+            
+            <pre><code>// Add at the beginning of problematic function
+#define DEBUG 1
+#ifdef DEBUG
+fprintf(stderr, "DEBUG: Entering function with param=%d\n", param);
+#endif</code></pre>
+            
+            <h4>Capture Raw Netlink Messages</h4>
+            
+            <p>Use <code>strace</code> to see raw Netlink communication:</p>
+            
+            <pre><code>$ sudo strace -e trace=sendto,recvfrom python3 device_info.py 2>&1 | \
+  grep -A 5 "sendto.*netlink"</code></pre>
+            
+            <h4>Compare with ip Command</h4>
+            
+            <p>Verify output against standard tools:</p>
+            
+            <pre><code># Compare interface list
+$ ip -j link show | jq -r '.[].ifname' | sort > /tmp/ip_output.txt
+$ sudo python3 device_info.py | jq -r 'keys[]' | sort > /tmp/script_output.txt
+$ diff /tmp/ip_output.txt /tmp/script_output.txt
+
+# Compare addresses
+$ ip -j addr show dev eth0 | jq '.[] | .addr_info'
+$ sudo python3 device_info.py | jq '.eth0.addresses'</code></pre>
+            
+            <h3>Getting Help</h3>
+            
+            <p>If you encounter issues not covered here:</p>
+            
+            <ol>
+                <li>Check kernel logs: <code>sudo dmesg | tail -50</code></li>
+                <li>Verify system requirements are met</li>
+                <li>Test with minimal configuration (only loopback interface)</li>
+                <li>Check for conflicting network management tools</li>
+                <li>Review recent kernel or distribution updates</li>
+            </ol>
+        </section>
+
+        <section id="reference">
+            <h2>📚 API Reference</h2>
+            
+            <p>Complete reference for IFLA and IFA constants used in Linux RTNetlink.</p>
+            
+            <h3>IFLA Constants (Interface Link Attributes)</h3>
+            
+            <p>These constants are defined in <code>&lt;linux/if_link.h&gt;</code> and used for querying/configuring network interface properties.</p>
+            
+            <h4>Basic Interface Properties (0-10)</h4>
+            
+            <table>
+                <tr>
+                    <th>Constant</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>IFLA_UNSPEC</td>
+                    <td>0</td>
+                    <td>Unspecified/invalid attribute</td>
+                </tr>
+                <tr>
+                    <td>IFLA_ADDRESS</td>
+                    <td>1</td>
+                    <td>Hardware (MAC) address</td>
+                </tr>
+                <tr>
+                    <td>IFLA_BROADCAST</td>
+                    <td>2</td>
+                    <td>Hardware broadcast address</td>
+                </tr>
+                <tr>
+                    <td>IFLA_IFNAME</td>
+                    <td>3</td>
+                    <td>Interface name (string)</td>
+                </tr>
+                <tr>
+                    <td>IFLA_MTU</td>
+                    <td>4</td>
+                    <td>Maximum Transmission Unit</td>
+                </tr>
+                <tr>
+                    <td>IFLA_LINK</td>
+                    <td>5</td>
+                    <td>Link to parent device (for VLANs, etc.)</td>
+                </tr>
+                <tr>
+                    <td>IFLA_QDISC</td>
+                    <td>6</td>
+                    <td>Queueing discipline name</td>
+                </tr>
+                <tr>
+                    <td>IFLA_STATS</td>
+                    <td>7</td>
+                    <td>Interface statistics (legacy, 32-bit)</td>
+                </tr>
+                <tr>
+                    <td>IFLA_MASTER</td>
+                    <td>10</td>
+                    <td>Master device for bonding/bridging</td>
+                </tr>
+            </table>
+            
+            <h4>Operational State and Configuration (11-20)</h4>
+            
+            <table>
+                <tr>
+                    <th>Constant</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>IFLA_TXQLEN</td>
+                    <td>13</td>
+                    <td>Transmit queue length</td>
+                </tr>
+                <tr>
+                    <td>IFLA_OPERSTATE</td>
+                    <td>16</td>
+                    <td>Operational state (up/down/dormant)</td>
+                </tr>
+                <tr>
+                    <td>IFLA_LINKMODE</td>
+                    <td>17</td>
+                    <td>Link mode (default/dormant)</td>
+                </tr>
+                <tr>
+                    <td>IFLA_LINKINFO</td>
+                    <td>18</td>
+                    <td>Link type specific info (nested)</td>
+                </tr>
+                <tr>
+                    <td>IFLA_IFALIAS</td>
+                    <td>20</td>
+                    <td>Interface alias (description)</td>
+                </tr>
+            </table>
+            
+            <h4>Statistics and Monitoring (21-35)</h4>
+            
+            <table>
+                <tr>
+                    <th>Constant</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>IFLA_STATS64</td>
+                    <td>23</td>
+                    <td>Interface statistics (64-bit, preferred)</td>
+                </tr>
+                <tr>
+                    <td>IFLA_AF_SPEC</td>
+                    <td>26</td>
+                    <td>Address family specific attributes</td>
+                </tr>
+                <tr>
+                    <td>IFLA_PROMISCUITY</td>
+                    <td>30</td>
+                    <td>Promiscuity count</td>
+                </tr>
+                <tr>
+                    <td>IFLA_CARRIER</td>
+                    <td>33</td>
+                    <td>Physical carrier status</td>
+                </tr>
+                <tr>
+                    <td>IFLA_CARRIER_CHANGES</td>
+                    <td>35</td>
+                    <td>Number of carrier changes</td>
+                </tr>
+            </table>
+            
+            <h4>Hardware Offload Properties (40-43)</h4>
+            
+            <table>
+                <tr>
+                    <th>Constant</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>IFLA_GSO_MAX_SEGS</td>
+                    <td>40</td>
+                    <td>GSO max segments</td>
+                </tr>
+                <tr>
+                    <td>IFLA_GSO_MAX_SIZE</td>
+                    <td>41</td>
+                    <td>Generic Segmentation Offload max size</td>
+                </tr>
+                <tr>
+                    <td>IFLA_XDP</td>
+                    <td>43</td>
+                    <td>eXpress Data Path (XDP) configuration</td>
+                </tr>
+            </table>
+            
+            <h4>Carrier Event Tracking (47-49)</h4>
+            
+            <table>
+                <tr>
+                    <th>Constant</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>IFLA_CARRIER_UP_COUNT</td>
+                    <td>47</td>
+                    <td>Carrier up event count</td>
+                </tr>
+                <tr>
+                    <td>IFLA_CARRIER_DOWN_COUNT</td>
+                    <td>48</td>
+                    <td>Carrier down event count</td>
+                </tr>
+                <tr>
+                    <td>IFLA_NEW_IFINDEX</td>
+                    <td>49</td>
+                    <td>New interface index</td>
+                </tr>
+            </table>
+            
+            <h4>Recent Additions (52-64) - Kernel 5.0+</h4>
+            
+            <table>
+                <tr>
+                    <th>Constant</th>
+                    <th>Value</th>
+                    <th>Min Kernel</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>IFLA_ALT_IFNAME</td>
+                    <td>53</td>
+                    <td>5.5</td>
+                    <td>Alternative interface names</td>
+                </tr>
+                <tr>
+                    <td>IFLA_PERM_ADDRESS</td>
+                    <td>54</td>
+                    <td>5.6</td>
+                    <td>Permanent hardware address</td>
+                </tr>
+                <tr>
+                    <td>IFLA_PARENT_DEV_NAME</td>
+                    <td>56</td>
+                    <td>5.10</td>
+                    <td>Parent device name</td>
+                </tr>
+                <tr>
+                    <td>IFLA_GRO_MAX_SIZE</td>
+                    <td>58</td>
+                    <td>5.15</td>
+                    <td>GRO max size</td>
+                </tr>
+                <tr>
+                    <td>IFLA_TSO_MAX_SIZE</td>
+                    <td>59</td>
+                    <td>5.18</td>
+                    <td>TSO max size</td>
+                </tr>
+                <tr>
+                    <td>IFLA_TSO_MAX_SEGS</td>
+                    <td>60</td>
+                    <td>5.18</td>
+                    <td>TSO max segments</td>
+                </tr>
+                <tr>
+                    <td>IFLA_GSO_IPV4_MAX_SIZE</td>
+                    <td>63</td>
+                    <td>6.2</td>
+                    <td>GSO IPv4 max size</td>
+                </tr>
+                <tr>
+                    <td>IFLA_GRO_IPV4_MAX_SIZE</td>
+                    <td>64</td>
+                    <td>6.2</td>
+                    <td>GRO IPv4 max size</td>
+                </tr>
+            </table>
+            
+            <h3>IFA Constants (Interface Address Attributes)</h3>
+            
+            <p>These constants are defined in <code>&lt;linux/if_addr.h&gt;</code> and used for querying/configuring IP addresses.</p>
+            
+            <h4>Basic Address Properties (0-8)</h4>
+            
+            <table>
+                <tr>
+                    <th>Constant</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>IFA_UNSPEC</td>
+                    <td>0</td>
+                    <td>Unspecified/invalid attribute</td>
+                </tr>
+                <tr>
+                    <td>IFA_ADDRESS</td>
+                    <td>1</td>
+                    <td>Interface address (IPv4/IPv6)</td>
+                </tr>
+                <tr>
+                    <td>IFA_LOCAL</td>
+                    <td>2</td>
+                    <td>Local address (for point-to-point)</td>
+                </tr>
+                <tr>
+                    <td>IFA_LABEL</td>
+                    <td>3</td>
+                    <td>Address label/alias</td>
+                </tr>
+                <tr>
+                    <td>IFA_BROADCAST</td>
+                    <td>4</td>
+                    <td>Broadcast address (IPv4 only)</td>
+                </tr>
+                <tr>
+                    <td>IFA_ANYCAST</td>
+                    <td>5</td>
+                    <td>Anycast address (IPv6 only)</td>
+                </tr>
+                <tr>
+                    <td>IFA_CACHEINFO</td>
+                    <td>6</td>
+                    <td>Address lifetime information</td>
+                </tr>
+                <tr>
+                    <td>IFA_FLAGS</td>
+                    <td>8</td>
+                    <td>Extended address flags (32-bit)</td>
+                </tr>
+            </table>
+            
+            <h4>Recent Additions (9-11) - Kernel 4.20+</h4>
+            
+            <table>
+                <tr>
+                    <th>Constant</th>
+                    <th>Value</th>
+                    <th>Min Kernel</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>IFA_RT_PRIORITY</td>
+                    <td>9</td>
+                    <td>4.20</td>
+                    <td>Route priority for this address</td>
+                </tr>
+                <tr>
+                    <td>IFA_TARGET_NETNSID</td>
+                    <td>10</td>
+                    <td>5.0</td>
+                    <td>Target network namespace ID</td>
+                </tr>
+                <tr>
+                    <td>IFA_PROTO</td>
+                    <td>11</td>
+                    <td>5.1</td>
+                    <td>Address protocol (how configured)</td>
+                </tr>
+            </table>
+            
+            <h3>Address Flags (IFA_F_*)</h3>
+            
+            <p>These are flag bits used within the IFA_FLAGS attribute:</p>
+            
+            <table>
+                <tr>
+                    <th>Flag</th>
+                    <th>Hex Value</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>IFA_F_SECONDARY</td>
+                    <td>0x01</td>
+                    <td>Secondary/alias address (IPv4)</td>
+                </tr>
+                <tr>
+                    <td>IFA_F_TEMPORARY</td>
+                    <td>0x01</td>
+                    <td>Temporary address (IPv6 privacy)</td>
+                </tr>
+                <tr>
+                    <td>IFA_F_NODAD</td>
+                    <td>0x02</td>
+                    <td>Skip Duplicate Address Detection</td>
+                </tr>
+                <tr>
+                    <td>IFA_F_OPTIMISTIC</td>
+                    <td>0x04</td>
+                    <td>Optimistic DAD (usable immediately)</td>
+                </tr>
+                <tr>
+                    <td>IFA_F_DADFAILED</td>
+                    <td>0x08</td>
+                    <td>DAD failed</td>
+                </tr>
+                <tr>
+                    <td>IFA_F_DEPRECATED</td>
+                    <td>0x20</td>
+                    <td>Deprecated address</td>
+                </tr>
+                <tr>
+                    <td>IFA_F_TENTATIVE</td>
+                    <td>0x40</td>
+                    <td>Tentative (DAD in progress)</td>
+                </tr>
+                <tr>
+                    <td>IFA_F_PERMANENT</td>
+                    <td>0x80</td>
+                    <td>Permanent address</td>
+                </tr>
+                <tr>
+                    <td>IFA_F_MANAGETEMPADDR</td>
+                    <td>0x100</td>
+                    <td>Manage temporary addresses</td>
+                </tr>
+                <tr>
+                    <td>IFA_F_NOPREFIXROUTE</td>
+                    <td>0x200</td>
+                    <td>Don't create prefix route</td>
+                </tr>
+                <tr>
+                    <td>IFA_F_STABLE_PRIVACY</td>
+                    <td>0x800</td>
+                    <td>Stable privacy address</td>
+                </tr>
+            </table>
+            
+            <h3>Address Readiness States</h3>
+            
+            <p>The tool computes an address "readiness" state based on interface state and address flags:</p>
+            
+            <table>
+                <tr>
+                    <th>State</th>
+                    <th>Symbol</th>
+                    <th>Condition</th>
+                    <th>Meaning</th>
+                </tr>
+                <tr>
+                    <td>ready</td>
+                    <td>✓</td>
+                    <td>Interface UP, no DAD flags</td>
+                    <td>Address is fully operational</td>
+                </tr>
+                <tr>
+                    <td>pending</td>
+                    <td>⋯</td>
+                    <td>TENTATIVE or OPTIMISTIC flag, or link DORMANT</td>
+                    <td>Configuration in progress</td>
+                </tr>
+                <tr>
+                    <td>failed</td>
+                    <td>✗</td>
+                    <td>DADFAILED flag set</td>
+                    <td>Duplicate address detected</td>
+                </tr>
+                <tr>
+                    <td>down</td>
+                    <td>○</td>
+                    <td>Interface DOWN or LOWERLAYERDOWN</td>
+                    <td>Interface not operational</td>
+                </tr>
+            </table>
+            
+            <h3>Operational States (IF_OPER_*)</h3>
+            
+            <table>
+                <tr>
+                    <th>Value</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>UNKNOWN</td>
+                    <td>Operational state unknown</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>NOTPRESENT</td>
+                    <td>Interface not present</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>DOWN</td>
+                    <td>Interface is down</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>LOWERLAYERDOWN</td>
+                    <td>Lower layer is down</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>TESTING</td>
+                    <td>Interface in testing mode</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>DORMANT</td>
+                    <td>Interface dormant</td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td>UP</td>
+                    <td>Interface is up</td>
+                </tr>
+            </table>
+            
+            <h3>Bridge STP States</h3>
+            
+            <table>
+                <tr>
+                    <th>Value</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>DISABLED</td>
+                    <td>STP disabled</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>LISTENING</td>
+                    <td>Port is listening</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>LEARNING</td>
+                    <td>Port is learning</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>FORWARDING</td>
+                    <td>Port is forwarding</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>BLOCKING</td>
+                    <td>Port is blocking</td>
+                </tr>
+            </table>
+            
+            <div class="info-box">
+                <strong>📖 Full Reference:</strong><br>
+                For complete details on all 64+ IFLA and 11+ IFA constants, including kernel version compatibility and usage examples, refer to the included <code>IFLA_IFA_REFERENCE.md</code> document.
+            </div>
+        </section>
+
+        <section id="examples">
+            <h2>💡 Advanced Examples</h2>
+            
+            <h3>Scripting and Automation</h3>
+            
+            <h4>Monitor for New Interfaces</h4>
+            <pre><code>#!/bin/bash
+# Watch for interface additions/removals
+
+LAST_COUNT=0
+
+while true; do
+    CURRENT_COUNT=$(sudo python3 device_info.py | jq 'length')
+    
+    if [ "$CURRENT_COUNT" -ne "$LAST_COUNT" ]; then
+        echo "$(date): Interface count changed: $LAST_COUNT → $CURRENT_COUNT"
+        sudo python3 device_info.py --summary
+        LAST_COUNT=$CURRENT_COUNT
+    fi
+    
+    sleep 2
+done</code></pre>
+            
+            <h4>Alert on Carrier Loss</h4>
+            <pre><code>#!/bin/bash
+# Alert when critical interfaces lose carrier
+
+CRITICAL_IFACES="eth0 eth1"
+
+for iface in $CRITICAL_IFACES; do
+    CARRIER=$(sudo python3 device_info.py | \
+             jq -r ".\"$iface\".carrier // false")
+    
+    if [ "$CARRIER" = "false" ]; then
+        echo "ALERT: $iface has no carrier!"
+        # Send notification, email, etc.
+    fi
+done</code></pre>
+            
+            <h4>Generate Interface Report</h4>
+            <pre><code>#!/bin/bash
+# Create comprehensive interface report
+
+REPORT="/tmp/interface_report_$(date +%Y%m%d_%H%M%S).txt"
+
+{
+    echo "==================================="
+    echo "Interface Report - $(date)"
+    echo "==================================="
+    echo ""
+    
+    echo "System Information:"
+    echo "  Kernel: $(uname -r)"
+    echo "  Hostname: $(hostname)"
+    echo ""
+    
+    echo "Interface Summary:"
+    sudo python3 device_info.py --summary
+    echo ""
+    
+    echo "==================================="
+    echo "Physical Interfaces:"
+    echo "==================================="
+    sudo python3 device_info.py | \
+        jq -r 'to_entries[] | select(.value.kind == null) | 
+               "\(.key): \(.value.operstate) - \(.value.mac_address)"'
+    echo ""
+    
+    echo "==================================="
+    echo "Virtual Interfaces:"
+    echo "==================================="
+    sudo python3 device_info.py | \
+        jq -r 'to_entries[] | select(.value.kind != null) | 
+               "\(.key): \(.value.kind)"'
+    echo ""
+    
+    echo "==================================="
+    echo "WireGuard Interfaces:"
+    echo "==================================="
+    sudo python3 device_info.py --wireguard
+    
+} > "$REPORT"
+
+echo "Report saved to: $REPORT"</code></pre>
+            
+            <h3>Integration with Monitoring Systems</h3>
+            
+            <h4>Prometheus Exporter Pattern</h4>
+            <pre><code>#!/usr/bin/env python3
+# Export metrics in Prometheus format
+
+import subprocess
+import json
+import sys
+
+def main():
+    result = subprocess.run(
+        ['sudo', 'python3', 'device_info.py'],
+        capture_output=True,
+        text=True
+    )
+    
+    if result.returncode != 0:
+        sys.exit(1)
+    
+    interfaces = json.loads(result.stdout)
+    
+    # Export carrier status
+    for name, info in interfaces.items():
+        carrier = 1 if info.get('carrier', False) else 0
+        print(f'interface_carrier{{interface="{name}"}} {carrier}')
+    
+    # Export MTU
+    for name, info in interfaces.items():
+        if 'mtu' in info:
+            print(f'interface_mtu{{interface="{name}"}} {info["mtu"]}')
+    
+    # Export address count
+    for name, info in interfaces.items():
+        addr_count = len(info.get('addresses', []))
+        print(f'interface_addresses{{interface="{name}"}} {addr_count}')
+
+if __name__ == '__main__':
+    main()</code></pre>
+            
+            <h4>Nagios/Icinga Check Plugin</h4>
+            <pre><code>#!/bin/bash
+# Nagios plugin to check interface status
+
+CRITICAL_IFACES="$1"
+WARNING=""
+CRITICAL=""
+
+for iface in $CRITICAL_IFACES; do
+    DATA=$(sudo python3 device_info.py | jq -r ".\"$iface\"")
+    
+    if [ "$DATA" = "null" ]; then
+        CRITICAL="$CRITICAL Interface $iface not found."
+        continue
+    fi
+    
+    OPERSTATE=$(echo "$DATA" | jq -r '.operstate')
+    CARRIER=$(echo "$DATA" | jq -r '.carrier // false')
+    
+    if [ "$OPERSTATE" != "UP" ]; then
+        CRITICAL="$CRITICAL $iface is $OPERSTATE."
+    elif [ "$CARRIER" = "false" ]; then
+        WARNING="$WARNING $iface has no carrier."
+    fi
+done
+
+if [ -n "$CRITICAL" ]; then
+    echo "CRITICAL:$CRITICAL"
+    exit 2
+elif [ -n "$WARNING" ]; then
+    echo "WARNING:$WARNING"
+    exit 1
+else
+    echo "OK: All interfaces operational"
+    exit 0
+fi</code></pre>
+            
+            <h3>Data Analysis Examples</h3>
+            
+            <h4>Find Interfaces with Most Carrier Changes</h4>
+            <pre><code>$ sudo python3 device_info.py | \
+  jq -r 'to_entries | 
+         map({name: .key, changes: .value.carrier_changes // 0}) | 
+         sort_by(.changes) | 
+         reverse | 
+         .[] | 
+         "\(.name): \(.changes) changes"'</code></pre>
+            
+            <h4>List All IPv6 Addresses with DAD State</h4>
+            <pre><code>$ sudo python3 device_info.py | \
+  jq -r 'to_entries[] | 
+         .key as $iface | 
+         .value.addresses[] | 
+         select(.family == "ipv6") | 
+         "\($iface): \(.address) - \(.readiness)"'</code></pre>
+            
+            <h4>Find All Bridge Ports</h4>
+            <pre><code>$ sudo python3 device_info.py | \
+  jq -r 'to_entries[] | 
+         select(.value.bridge_port != null) | 
+         "\(.key) → \(.value.master) (STP: \(.value.bridge_port.stp_state))"'</code></pre>
+        </section>
+
+        <footer>
+            <p><strong>Network Interface Monitoring Tool - Comprehensive Guide</strong></p>
+            <p>For questions, issues, or contributions, please refer to your project documentation.</p>
+            <p style="margin-top: 20px; font-size: 0.9em; opacity: 0.8;">
+                Generated: November 2024 | Python 3.8+ | Linux Kernel 2.6+
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

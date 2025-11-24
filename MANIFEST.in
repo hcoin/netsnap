@@ -1,0 +1,13 @@
+# Include documentation
+include README.md
+include LICENSE
+include CHANGELOG.md
+
+# Include HTML documentation
+recursive-include netmon *.html
+
+# Exclude unnecessary files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+global-exclude .DS_Store

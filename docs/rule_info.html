@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>net_rule_info.py - RTNetlink Routing Rule Query Module</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-left: 4px solid #e74c3c;
+            padding-left: 15px;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .overview {
+            background-color: #ffebee;
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        
+        pre {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.4;
+        }
+        
+        pre code {
+            background-color: transparent;
+            color: #abb2bf;
+            padding: 0;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #e74c3c;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .method-signature {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .toc {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .toc li {
+            margin-bottom: 5px;
+        }
+        
+        .toc a {
+            color: #e74c3c;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .badge-required {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .badge-optional {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .badge-linux {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .feature-box h4 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>net_rule_info.py</h1>
+        <p style="font-size: 1.2em; color: #666; margin-bottom: 30px;">
+            RTNetlink Routing Rule (Policy Routing) Query Module with C Library via CFFI
+        </p>
+
+        <div class="overview">
+            <strong>Overview:</strong> A high-performance Python module for querying Linux routing policy rules using the RTNetlink protocol. 
+            This module provides comprehensive access to the kernel's routing rule database (policy routing) for both IPv4 and IPv6, 
+            including support for priority-based rule ordering, source/destination selectors, firewall mark matching, and interface-based routing decisions.
+        </div>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#architecture">Architecture & Design</a></li>
+                <li><a href="#policy-routing">Policy Routing Overview</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#requirements">Requirements & Installation</a></li>
+                <li><a href="#usage">Usage Examples</a></li>
+                <li><a href="#api">API Reference</a></li>
+                <li><a href="#rule-info">Rule Information Structure</a></li>
+                <li><a href="#cli">Command-Line Interface</a></li>
+                <li><a href="#technical">Technical Details</a></li>
+            </ul>
+        </div>
+
+        <h2 id="architecture">Architecture & Design</h2>
+        
+        <h3>Design Philosophy</h3>
+        <p>
+            The module follows the same proven architecture as <code>net_route_info.py</code>, combining C performance with Python convenience:
+        </p>
+        <ul>
+            <li><strong>C Core:</strong> Low-level RTNetlink communication for querying routing rules via <code>RTM_GETRULE</code></li>
+            <li><strong>CFFI Bridge:</strong> Runtime compilation and seamless integration between C and Python</li>
+            <li><strong>Python Interface:</strong> Clean, type-hinted API with context managers for resource safety</li>
+        </ul>
+
+        <h3>Architecture Layers</h3>
+        <div class="feature-grid">
+            <div class="feature-box">
+                <h4>Layer 1: Kernel Interface</h4>
+                <p>Direct communication with Linux kernel via RTNetlink sockets using <code>RTM_GETRULE</code> messages</p>
+            </div>
+            <div class="feature-box">
+                <h4>Layer 2: C Implementation</h4>
+                <p>Handles socket management, message construction, response parsing, and FRA_* attribute extraction</p>
+            </div>
+            <div class="feature-box">
+                <h4>Layer 3: CFFI Bridge</h4>
+                <p>Runtime compilation and type conversion between C structures and Python objects</p>
+            </div>
+            <div class="feature-box">
+                <h4>Layer 4: Python API</h4>
+                <p>Context manager interface, type conversion, and user-friendly data structures</p>
+            </div>
+        </div>
+
+        <h3>Data Flow</h3>
+        <pre><code>┌─────────────────────────────────────────────┐
+│  Python Application Code                   │
+└──────────────────┬──────────────────────────┘
+                   │ get_rules()
+                   ▼
+┌─────────────────────────────────────────────┐
+│  RoutingRuleQuery Class                    │
+│  - Socket management (context manager)     │
+│  - Type conversion (Python ↔ C)            │
+└──────────────────┬──────────────────────────┘
+                   │ lib.nl_send_getrule()
+                   ▼
+┌─────────────────────────────────────────────┐
+│  C Library (via CFFI)                      │
+│  - nl_create_socket()                      │
+│  - nl_send_getrule()                       │
+│  - nl_receive_response()                   │
+│  - nl_parse_rules()                        │
+└──────────────────┬──────────────────────────┘
+                   │ RTNetlink Protocol
+                   ▼
+┌─────────────────────────────────────────────┐
+│  Linux Kernel Routing Rule Subsystem       │
+│  - Rule lookup and filtering              │
+│  - RTM_NEWRULE messages                    │
+└─────────────────────────────────────────────┘</code></pre>
+
+        <h2 id="policy-routing">Policy Routing Overview</h2>
+
+        <h3>What is Policy Routing?</h3>
+        <p>
+            Policy routing (also called source routing or rule-based routing) allows Linux to make routing decisions based on 
+            criteria beyond just the destination address. Traditional routing only considers where a packet is going; policy 
+            routing also considers where it came from, which interface it arrived on, packet marks, and other attributes.
+        </p>
+
+        <h3>How Routing Rules Work</h3>
+        <p>
+            Routing rules form a prioritized list that the kernel traverses when making routing decisions. Each rule contains:
+        </p>
+        <ul>
+            <li><strong>Selectors:</strong> Criteria to match packets (source, destination, interface, fwmark, etc.)</li>
+            <li><strong>Action:</strong> What to do when matched (lookup table, goto, blackhole, etc.)</li>
+            <li><strong>Priority:</strong> Rules are evaluated in priority order (lower numbers first)</li>
+        </ul>
+
+        <h3>Rule Processing Flow</h3>
+        <pre><code>Packet arrives
+    │
+    ▼
+┌─────────────────────────┐
+│ Rule 0: from all        │──→ Lookup in local table
+│         lookup local    │    (Usually 255.255.255.255, 127.0.0.0/8)
+└───────────┬─────────────┘
+            │ Not matched or no route
+            ▼
+┌─────────────────────────┐
+│ Rule 32766: from all    │──→ Lookup in main table
+│         lookup main     │    (Normal routing table)
+└───────────┬─────────────┘
+            │ Not matched or no route
+            ▼
+┌─────────────────────────┐
+│ Rule 32767: from all    │──→ Lookup in default table
+│         lookup default  │    (Usually empty)
+└─────────────────────────┘</code></pre>
+
+        <h3>Common Use Cases</h3>
+        <div class="feature-grid">
+            <div class="feature-box">
+                <h4>Multi-Homing</h4>
+                <p>Route traffic from different source IPs through different gateways</p>
+            </div>
+            <div class="feature-box">
+                <h4>VPN Split-Tunneling</h4>
+                <p>Route some traffic through VPN, rest through normal gateway</p>
+            </div>
+            <div class="feature-box">
+                <h4>Load Balancing</h4>
+                <p>Distribute traffic across multiple ISP connections based on source</p>
+            </div>
+            <div class="feature-box">
+                <h4>Traffic Engineering</h4>
+                <p>Use firewall marks to route specific applications through specific paths</p>
+            </div>
+        </div>
+
+        <h2 id="features">Key Features</h2>
+
+        <div class="feature-grid">
+            <div class="feature-box">
+                <h4>✓ Dual Stack Support</h4>
+                <ul>
+                    <li>Full IPv4 rule queries</li>
+                    <li>Full IPv6 rule queries</li>
+                    <li>Mixed query support</li>
+                </ul>
+            </div>
+            <div class="feature-box">
+                <h4>✓ Rule Selectors</h4>
+                <ul>
+                    <li>Source address/network</li>
+                    <li>Destination address/network</li>
+                    <li>Input interface (iif)</li>
+                    <li>Output interface (oif)</li>
+                    <li>Firewall mark (fwmark/fwmask)</li>
+                    <li>Type of Service (TOS)</li>
+                </ul>
+            </div>
+            <div class="feature-box">
+                <h4>✓ Rule Actions</h4>
+                <ul>
+                    <li>TO_TBL (lookup table)</li>
+                    <li>GOTO (jump to rule)</li>
+                    <li>BLACKHOLE (silent drop)</li>
+                    <li>UNREACHABLE (ICMP error)</li>
+                    <li>PROHIBIT (ICMP prohibited)</li>
+                    <li>NOP (no operation)</li>
+                </ul>
+            </div>
+            <div class="feature-box">
+                <h4>✓ Advanced Features</h4>
+                <ul>
+                    <li>Priority-based ordering</li>
+                    <li>Multiple routing tables</li>
+                    <li>Unknown attribute tracking</li>
+                    <li>Full metadata extraction</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Rule Metadata Extracted</h3>
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Fields</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><strong>Classification</strong></td>
+                <td>family, action, table, priority</td>
+                <td>IPv4/IPv6, rule action, target routing table, evaluation priority</td>
+            </tr>
+            <tr>
+                <td><strong>Selectors</strong></td>
+                <td>src, dst, iif, oif, fwmark, tos</td>
+                <td>Source network, destination network, interfaces, firewall mark, type of service</td>
+            </tr>
+            <tr>
+                <td><strong>Routing Decision</strong></td>
+                <td>table, table_id, goto</td>
+                <td>Which routing table to use or which rule to jump to</td>
+            </tr>
+            <tr>
+                <td><strong>Matching Details</strong></td>
+                <td>src_len, dst_len, fwmask, flags</td>
+                <td>Prefix lengths, firewall mark mask, rule flags</td>
+            </tr>
+        </table>
+
+        <h2 id="requirements">Requirements & Installation</h2>
+
+        <h3>System Requirements</h3>
+        <div class="info">
+            <strong>Platform:</strong> <span class="badge badge-linux">Linux 2.6+</span>
+            <br><br>
+            This module requires Linux with RTNetlink support. It will not work on Windows, macOS, or other Unix systems.
+        </div>
+
+        <h3>Python Requirements</h3>
+        <table>
+            <tr>
+                <th>Requirement</th>
+                <th>Version</th>
+                <th>Notes</th>
+            </tr>
+            <tr>
+                <td>Python</td>
+                <td>≥ 3.8</td>
+                <td>Required for type hints and modern syntax</td>
+            </tr>
+            <tr>
+                <td>cffi</td>
+                <td>≥ 1.0.0</td>
+                <td>Required for C library integration</td>
+            </tr>
+            <tr>
+                <td>setuptools</td>
+                <td>Any version</td>
+                <td>Required for Python 3.12+ due to distutils removal</td>
+            </tr>
+        </table>
+
+        <h3>Installation</h3>
+        <pre><code># Install dependencies
+pip install cffi setuptools
+
+# For Python 3.12+, setuptools is mandatory
+pip install setuptools  # if not already installed</code></pre>
+
+        <div class="warning">
+            <strong>⚠ Python 3.12+ Note:</strong> Python 3.12 removed the <code>distutils</code> module from the standard library. 
+            CFFI's <code>ffi.verify()</code> method requires setuptools on Python 3.12+ to provide the compilation infrastructure 
+            that distutils previously offered.
+        </div>
+
+        <h3>Permissions</h3>
+        <div class="warning">
+            <strong>⚠ Root/CAP_NET_ADMIN Required:</strong> Querying routing rules via RTNetlink requires either:
+            <ul style="margin-top: 10px;">
+                <li>Running as root: <code>sudo python3 net_rule_info.py</code></li>
+                <li>CAP_NET_ADMIN capability (not recommended for system Python)</li>
+            </ul>
+        </div>
+
+        <h2 id="usage">Usage Examples</h2>
+
+        <h3>Basic Usage: Query All Rules</h3>
+        <pre><code>from net_rule_info import RoutingRuleQuery
+
+# Using context manager (recommended)
+with RoutingRuleQuery() as query:
+    rules = query.get_rules()
+    
+    # Sort by priority
+    sorted_rules = sorted(rules, key=lambda r: r.get('priority', 0))
+    
+    for rule in sorted_rules:
+        print(f"Priority {rule.get('priority', 'N/A')}: ", end='')
+        print(f"{rule['action']} ", end='')
+        
+        if 'src' in rule:
+            print(f"from {rule['src']} ", end='')
+        
+        if rule['action'] == 'TO_TBL':
+            print(f"lookup {rule['table']}")
+        else:
+            print()</code></pre>
+
+        <h3>IPv4-Only Rules</h3>
+        <pre><code>with RoutingRuleQuery() as query:
+    ipv4_rules = query.get_rules(family='ipv4')
+    
+    print(f"Found {len(ipv4_rules)} IPv4 routing rules")
+    
+    for rule in ipv4_rules:
+        if 'fwmark' in rule:
+            print(f"Rule with fwmark {rule['fwmark']}: {rule['action']}")</code></pre>
+
+        <h3>IPv6-Only Rules</h3>
+        <pre><code>with RoutingRuleQuery() as query:
+    ipv6_rules = query.get_rules(family='ipv6')
+    
+    # Filter for specific source networks
+    ula_rules = [r for r in ipv6_rules 
+                 if 'src' in r and r['src'].startswith('fd')]
+    
+    print(f"Found {len(ula_rules)} rules for ULA addresses")</code></pre>
+
+        <h3>Finding Interface-Specific Rules</h3>
+        <pre><code>with RoutingRuleQuery() as query:
+    rules = query.get_rules()
+    
+    # Find rules with input interface
+    iif_rules = [r for r in rules if 'iif' in r]
+    
+    for rule in iif_rules:
+        print(f"Traffic from {rule['iif']} → {rule['action']}")</code></pre>
+
+        <h3>Analyzing Firewall Mark Rules</h3>
+        <pre><code>with RoutingRuleQuery() as query:
+    rules = query.get_rules()
+    
+    # Find rules using fwmark
+    fwmark_rules = [r for r in rules if 'fwmark' in r]
+    
+    for rule in fwmark_rules:
+        mark = rule['fwmark']
+        mask = rule.get('fwmask', 0xffffffff)
+        table = rule.get('table', 'unknown')
+        
+        print(f"Fwmark 0x{mark:x}/0x{mask:x} → table {table}")</code></pre>
+
+        <h3>Finding Custom Routing Tables</h3>
+        <pre><code>with RoutingRuleQuery() as query:
+    rules = query.get_rules()
+    
+    # Find rules pointing to custom tables (not MAIN or LOCAL)
+    custom_tables = {}
+    
+    for rule in rules:
+        table = rule['table']
+        if table not in ['MAIN', 'LOCAL', 'DEFAULT', 'UNSPEC']:
+            if table not in custom_tables:
+                custom_tables[table] = []
+            custom_tables[table].append(rule)
+    
+    print(f"Found {len(custom_tables)} custom routing tables:")
+    for table, table_rules in custom_tables.items():
+        print(f"  Table {table}: {len(table_rules)} rules")</code></pre>
+
+        <h3>Source-Based Routing Analysis</h3>
+        <pre><code>with RoutingRuleQuery() as query:
+    rules = query.get_rules()
+    
+    # Find source-based routing rules
+    src_rules = [r for r in rules if 'src' in r]
+    
+    print("Source-based routing rules:")
+    for rule in src_rules:
+        src = rule['src']
+        action = rule['action']
+        priority = rule.get('priority', 'N/A')
+        
+        if action == 'TO_TBL':
+            print(f"  [{priority}] {src} → table {rule['table']}")
+        else:
+            print(f"  [{priority}] {src} → {action}")</code></pre>
+
+        <h3>JSON Export</h3>
+        <pre><code>import json
+
+with RoutingRuleQuery() as query:
+    rules = query.get_rules()
+    
+    # Pretty-print JSON
+    print(json.dumps(rules, indent=2))
+    
+    # Save to file
+    with open('rules.json', 'w') as f:
+        json.dump(rules, f, indent=2)</code></pre>
+
+        <h2 id="api">API Reference</h2>
+
+        <h3>RoutingRuleQuery Class</h3>
+        
+        <div class="method-signature">
+<strong>class</strong> RoutingRuleQuery(capture_unknown_attrs: bool = True)
+        </div>
+        
+        <p>Main class for querying routing rules. Implements context manager protocol for safe socket management.</p>
+        
+        <h4>Constructor Parameters</h4>
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>capture_unknown_attrs</code></td>
+                <td>bool</td>
+                <td>True</td>
+                <td>Whether to track unknown FRA_* attributes in rule entries</td>
+            </tr>
+        </table>
+
+        <h4>Methods</h4>
+        
+        <div class="method-signature">
+get_rules(family: Optional[str] = None) → List[Dict[str, Any]]
+        </div>
+        
+        <p>Query routing rule entries with optional address family filtering.</p>
+        
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Type</th>
+                <th>Valid Values</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>family</code></td>
+                <td>Optional[str]</td>
+                <td>'ipv4', 'ipv6', None</td>
+                <td>Address family filter. None returns both IPv4 and IPv6</td>
+            </tr>
+        </table>
+        
+        <p><strong>Returns:</strong> List of dictionaries, each representing a rule entry with complete metadata.</p>
+        
+        <p><strong>Raises:</strong></p>
+        <ul>
+            <li><code>ValueError</code> - Invalid family parameter</li>
+            <li><code>RuntimeError</code> - Socket creation, send, receive, or parse failure</li>
+            <li><code>PermissionError</code> - Insufficient privileges (needs root/CAP_NET_ADMIN)</li>
+        </ul>
+
+        <h4>Context Manager Protocol</h4>
+        <pre><code># Automatically manages socket lifecycle
+with RoutingRuleQuery() as query:
+    rules = query.get_rules()
+    # Socket is automatically closed on exit</code></pre>
+
+        <h2 id="rule-info">Rule Information Structure</h2>
+
+        <p>Each rule entry is returned as a dictionary with the following structure:</p>
+
+        <h3>Standard Fields</h3>
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Always Present</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>family</code></td>
+                <td>str</td>
+                <td>✓</td>
+                <td>'ipv4' or 'ipv6'</td>
+            </tr>
+            <tr>
+                <td><code>action</code></td>
+                <td>str</td>
+                <td>✓</td>
+                <td>Rule action: TO_TBL, GOTO, NOP, BLACKHOLE, UNREACHABLE, PROHIBIT</td>
+            </tr>
+            <tr>
+                <td><code>table</code></td>
+                <td>str/int</td>
+                <td>✓</td>
+                <td>Routing table: MAIN, LOCAL, DEFAULT, or numeric ID</td>
+            </tr>
+            <tr>
+                <td><code>dst_len</code></td>
+                <td>int</td>
+                <td>✓</td>
+                <td>Destination prefix length (0-32 for IPv4, 0-128 for IPv6)</td>
+            </tr>
+            <tr>
+                <td><code>src_len</code></td>
+                <td>int</td>
+                <td>✓</td>
+                <td>Source prefix length (0-32 for IPv4, 0-128 for IPv6)</td>
+            </tr>
+            <tr>
+                <td><code>tos</code></td>
+                <td>int</td>
+                <td>✓</td>
+                <td>Type of Service value (0 if not used)</td>
+            </tr>
+            <tr>
+                <td><code>flags</code></td>
+                <td>int</td>
+                <td>✓</td>
+                <td>Rule flags (bitfield)</td>
+            </tr>
+        </table>
+
+        <h3>Optional Fields</h3>
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>priority</code></td>
+                <td>int</td>
+                <td>Rule priority (lower = evaluated first). Default system rules: 0, 32766, 32767</td>
+            </tr>
+            <tr>
+                <td><code>src</code></td>
+                <td>str</td>
+                <td>Source address/network in CIDR notation (e.g., '192.168.1.0/24')</td>
+            </tr>
+            <tr>
+                <td><code>dst</code></td>
+                <td>str</td>
+                <td>Destination address/network in CIDR notation</td>
+            </tr>
+            <tr>
+                <td><code>iif</code></td>
+                <td>str</td>
+                <td>Input interface name (e.g., 'eth0', 'wlan0')</td>
+            </tr>
+            <tr>
+                <td><code>oif</code></td>
+                <td>str</td>
+                <td>Output interface name</td>
+            </tr>
+            <tr>
+                <td><code>fwmark</code></td>
+                <td>int</td>
+                <td>Firewall mark value to match (set by iptables/nftables)</td>
+            </tr>
+            <tr>
+                <td><code>fwmask</code></td>
+                <td>int</td>
+                <td>Firewall mark mask (which bits to check)</td>
+            </tr>
+            <tr>
+                <td><code>table_id</code></td>
+                <td>int</td>
+                <td>Numeric routing table ID (for tables > 255)</td>
+            </tr>
+            <tr>
+                <td><code>goto</code></td>
+                <td>int</td>
+                <td>Target rule priority for GOTO action</td>
+            </tr>
+            <tr>
+                <td><code>unknown_fra_attrs</code></td>
+                <td>List[int]</td>
+                <td>List of unknown FRA_* attribute numbers (if capture_unknown_attrs=True)</td>
+            </tr>
+            <tr>
+                <td><code>unknown_fra_attrs_decoded</code></td>
+                <td>List[Dict]</td>
+                <td>Decoded information about unknown attributes</td>
+            </tr>
+        </table>
+
+        <h3>Example Rule Entries</h3>
+        
+        <h4>Default System Rule (Local Table)</h4>
+        <pre><code>{
+  "family": "ipv4",
+  "action": "TO_TBL",
+  "table": "LOCAL",
+  "priority": 0,
+  "dst_len": 0,
+  "src_len": 0,
+  "tos": 0,
+  "flags": 0
+}</code></pre>
+
+        <h4>Source-Based Routing Rule</h4>
+        <pre><code>{
+  "family": "ipv4",
+  "action": "TO_TBL",
+  "table": 100,
+  "priority": 100,
+  "src": "192.168.2.0/24",
+  "src_len": 24,
+  "dst_len": 0,
+  "tos": 0,
+  "flags": 0,
+  "table_id": 100
+}</code></pre>
+
+        <h4>Firewall Mark Rule</h4>
+        <pre><code>{
+  "family": "ipv4",
+  "action": "TO_TBL",
+  "table": 200,
+  "priority": 200,
+  "fwmark": 1,
+  "fwmask": 255,
+  "dst_len": 0,
+  "src_len": 0,
+  "tos": 0,
+  "flags": 0,
+  "table_id": 200
+}</code></pre>
+
+        <h2 id="cli">Command-Line Interface</h2>
+
+        <h3>Basic Usage</h3>
+        <pre><code># Full JSON output of all rules
+sudo python3 net_rule_info.py
+
+# Human-readable summary
+sudo python3 net_rule_info.py --summary
+
+# IPv4 rules only
+sudo python3 net_rule_info.py --ipv4
+
+# IPv6 rules only
+sudo python3 net_rule_info.py --ipv6
+
+# Disable unknown attribute tracking
+sudo python3 net_rule_info.py --no-unknown-attrs
+
+# Combine options
+sudo python3 net_rule_info.py --ipv4 --summary</code></pre>
+
+        <h3>Command-Line Options</h3>
+        <table>
+            <tr>
+                <th>Option</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>--summary</code></td>
+                <td>Display human-readable summary instead of JSON</td>
+            </tr>
+            <tr>
+                <td><code>--ipv4</code></td>
+                <td>Show only IPv4 rules</td>
+            </tr>
+            <tr>
+                <td><code>--ipv6</code></td>
+                <td>Show only IPv6 rules</td>
+            </tr>
+            <tr>
+                <td><code>--no-unknown-attrs</code></td>
+                <td>Disable tracking of unknown FRA_* attributes</td>
+            </tr>
+        </table>
+
+        <h3>Example Output (--summary mode)</h3>
+        <pre><code>======================================================================
+ROUTING RULE QUERY
+======================================================================
+
+Total rules: 5
+
+Rule entries:
+
+  0: from all lookup LOCAL
+  100: from 192.168.2.0/24 lookup 100
+  200: from all fwmark 0x1/0xff lookup 200
+  32766: from all lookup MAIN
+  32767: from all lookup DEFAULT</code></pre>
+
+        <h2 id="technical">Technical Details</h2>
+
+        <h3>RTNetlink Protocol</h3>
+        <p>
+            The module communicates with the Linux kernel using the RTNetlink protocol's <code>RTM_GETRULE</code> message 
+            to query the routing policy database (RPDB).
+        </p>
+
+        <h4>Message Flow</h4>
+        <ol>
+            <li><strong>Socket Creation:</strong> Opens a <code>NETLINK_ROUTE</code> socket</li>
+            <li><strong>Request Construction:</strong> Builds <code>RTM_GETRULE</code> request with optional family filter</li>
+            <li><strong>Kernel Query:</strong> Sends request to kernel and waits for response</li>
+            <li><strong>Response Processing:</strong> Parses <code>RTM_NEWRULE</code> messages</li>
+            <li><strong>Attribute Extraction:</strong> Extracts rule attributes (FRA_SRC, FRA_DST, FRA_PRIORITY, etc.)</li>
+            <li><strong>Data Conversion:</strong> Converts C structures to Python dictionaries</li>
+        </ol>
+
+        <h3>Differences from Route Queries</h3>
+        <table>
+            <tr>
+                <th>Aspect</th>
+                <th>Route Queries (RTM_GETROUTE)</th>
+                <th>Rule Queries (RTM_GETRULE)</th>
+            </tr>
+            <tr>
+                <td>Message Type</td>
+                <td>RTM_GETROUTE / RTM_NEWROUTE</td>
+                <td>RTM_GETRULE / RTM_NEWRULE</td>
+            </tr>
+            <tr>
+                <td>Attributes</td>
+                <td>RTA_* (Route Attributes)</td>
+                <td>FRA_* (Forwarding Rule Attributes)</td>
+            </tr>
+            <tr>
+                <td>Primary Use</td>
+                <td>Determine next-hop for destination</td>
+                <td>Determine which routing table to use</td>
+            </tr>
+            <tr>
+                <td>Key Fields</td>
+                <td>dst, gateway, dev, metric</td>
+                <td>priority, src, dst, table, action</td>
+            </tr>
+        </table>
+
+        <h3>Supported Rule Attributes (FRA_*)</h3>
+        <table>
+            <tr>
+                <th>Attribute</th>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+            <tr><td>FRA_DST</td><td>1</td><td>Destination network selector</td></tr>
+            <tr><td>FRA_SRC</td><td>2</td><td>Source network selector</td></tr>
+            <tr><td>FRA_IIFNAME</td><td>3</td><td>Input interface name</td></tr>
+            <tr><td>FRA_GOTO</td><td>4</td><td>Target rule priority for GOTO action</td></tr>
+            <tr><td>FRA_PRIORITY</td><td>6</td><td>Rule priority/preference</td></tr>
+            <tr><td>FRA_FWMARK</td><td>10</td><td>Firewall mark value</td></tr>
+            <tr><td>FRA_TABLE</td><td>15</td><td>Routing table ID (>255)</td></tr>
+            <tr><td>FRA_FWMASK</td><td>16</td><td>Firewall mark mask</td></tr>
+            <tr><td>FRA_OIFNAME</td><td>17</td><td>Output interface name</td></tr>
+        </table>
+
+        <h3>Rule Actions</h3>
+        <table>
+            <tr>
+                <th>Action</th>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+            <tr><td>FR_ACT_TO_TBL</td><td>1</td><td>Lookup route in specified routing table</td></tr>
+            <tr><td>FR_ACT_GOTO</td><td>2</td><td>Jump to another rule at specified priority</td></tr>
+            <tr><td>FR_ACT_NOP</td><td>3</td><td>No operation (skip to next rule)</td></tr>
+            <tr><td>FR_ACT_BLACKHOLE</td><td>6</td><td>Silently discard packet</td></tr>
+            <tr><td>FR_ACT_UNREACHABLE</td><td>7</td><td>Send ICMP unreachable error</td></tr>
+            <tr><td>FR_ACT_PROHIBIT</td><td>8</td><td>Send ICMP administratively prohibited error</td></tr>
+        </table>
+
+        <h3>Default System Rules</h3>
+        <p>Linux typically starts with three default rules:</p>
+        <ul>
+            <li><strong>Priority 0:</strong> Lookup in LOCAL table (broadcasts, local addresses)</li>
+            <li><strong>Priority 32766:</strong> Lookup in MAIN table (normal routing)</li>
+            <li><strong>Priority 32767:</strong> Lookup in DEFAULT table (usually empty)</li>
+        </ul>
+
+        <h3>Limitations</h3>
+        <ul>
+            <li><strong>Linux Only:</strong> Requires Linux kernel with RTNetlink (2.6+)</li>
+            <li><strong>Root Required:</strong> Needs CAP_NET_ADMIN capability or root privileges</li>
+            <li><strong>Read-Only:</strong> Query operations only; cannot modify rules (use <code>ip rule</code> for that)</li>
+            <li><strong>Snapshot:</strong> Returns point-in-time snapshot; no real-time monitoring</li>
+            <li><strong>First Import Delay:</strong> 1-2 second compilation delay on first import</li>
+        </ul>
+
+        <h3>Comparison with ip rule command</h3>
+        <table>
+            <tr>
+                <th>Aspect</th>
+                <th>net_rule_info.py</th>
+                <th>ip rule show</th>
+            </tr>
+            <tr>
+                <td>Output Format</td>
+                <td>Structured JSON/Python dicts</td>
+                <td>Human-readable text</td>
+            </tr>
+            <tr>
+                <td>Programmatic Use</td>
+                <td>Easy (native Python objects)</td>
+                <td>Requires text parsing</td>
+            </tr>
+            <tr>
+                <td>Performance</td>
+                <td>High (direct kernel access)</td>
+                <td>Good (external process)</td>
+            </tr>
+            <tr>
+                <td>Metadata</td>
+                <td>Complete (all FRA_* attributes)</td>
+                <td>Limited to displayed fields</td>
+            </tr>
+            <tr>
+                <td>Setup</td>
+                <td>Requires CFFI compilation</td>
+                <td>No setup (standard tool)</td>
+            </tr>
+        </table>
+
+        <h3>Integration with net_route_info.py</h3>
+        <p>
+            Use both modules together for complete routing analysis:
+        </p>
+        <pre><code>from net_rule_info import RoutingRuleQuery
+from net_route_info import RoutingTableQuery
+
+# Get rules
+with RoutingRuleQuery() as rule_query:
+    rules = rule_query.get_rules()
+
+# For each custom routing table found in rules
+with RoutingTableQuery() as route_query:
+    all_routes = route_query.get_routes()
+    
+    # Group routes by table
+    routes_by_table = {}
+    for route in all_routes:
+        table = route['table']
+        if table not in routes_by_table:
+            routes_by_table[table] = []
+        routes_by_table[table].append(route)
+    
+    # Display rules and their associated routes
+    for rule in sorted(rules, key=lambda r: r.get('priority', 0)):
+        print(f"\nRule {rule.get('priority', '?')}: {rule['action']}")
+        
+        if rule['action'] == 'TO_TBL':
+            table = rule['table']
+            table_routes = routes_by_table.get(table, [])
+            print(f"  Routes in table {table}:")
+            for route in table_routes[:5]:  # Show first 5
+                print(f"    {route['dst']}")
+</code></pre>
+
+        <h2>Conclusion</h2>
+        <p>
+            <strong>net_rule_info.py</strong> provides direct, high-performance access to Linux's routing policy database 
+            through RTNetlink. It enables programmatic analysis of policy routing configurations, making it ideal for 
+            network monitoring tools, SDN controllers, VPN management, and advanced routing diagnostics. Use it alongside 
+            <strong>net_route_info.py</strong> for complete visibility into Linux routing behavior.
+        </p>
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee; color: #666; font-size: 0.9em;">
+            <p><strong>Module:</strong> net_rule_info.py</p>
+            <p><strong>Documentation Generated:</strong> 2025</p>
+            <p><strong>Python Version:</strong> 3.8+</p>
+            <p><strong>Platform:</strong> Linux (2.6+)</p>
+            <p><strong>Related:</strong> <a href="net_route_info.html" style="color: #e74c3c;">net_route_info.py</a></p>
+        </div>
+    </div>
+</body>
+</html>
