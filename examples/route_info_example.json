@@ -1,0 +1,58 @@
+[
+  {
+    "family": "ipv4",
+    "type": "UNICAST",
+    "protocol": "STATIC",
+    "scope": "UNIVERSE",
+    "table": "MAIN",
+    "dst_len": 0,
+    "src_len": 0,
+    "tos": 0,
+    "flags": 0,
+    "dst": "0.0.0.0/0",
+    "gateway": "10.12.127.254",
+    "dev_index": 35,
+    "dev": "lan0bridge",
+    "table_id": 254
+  },
+  {
+    "family": "ipv4",
+    "type": "UNICAST",
+    "protocol": "KERNEL",
+    "scope": "LINK",
+    "table": "MAIN",
+    "dst_len": 20,
+    "src_len": 0,
+    "tos": 0,
+    "flags": 0,
+    "dst": "10.12.112.0/20",
+    "prefsrc": "10.12.112.65",
+    "dev_index": 35,
+    "dev": "lan0bridge",
+    "table_id": 254
+  },
+   {
+    "family": "ipv6",
+    "type": "MULTICAST",
+    "protocol": "KERNEL",
+    "scope": "UNIVERSE",
+    "table": "LOCAL",
+    "dst_len": 8,
+    "src_len": 0,
+    "tos": 0,
+    "flags": 0,
+    "dst": "ff00::/8",
+    "dev_index": 4,
+    "dev": "enp4s0.100",
+    "metric": 256,
+    "table_id": 255,
+    "cacheinfo": {
+      "clntref": 0,
+      "last_use": 0,
+      "expires": 0,
+      "error": 0,
+      "used": 0
+    }
+  }
+  ]
+  

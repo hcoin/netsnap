@@ -1,0 +1,38 @@
+{
+  "entries": [
+    {
+      "ifindex": 31,
+      "ifname": "lan0bridge",
+      "state": 0,
+      "state_name": "TEMPORARY",
+      "flags": 0,
+      "flags_name": "NONE",
+      "port_ifindex": 20,
+      "port_ifname": "enp27s0",
+      "group": "ff02::1:ff92:d07c",
+      "family": "ipv6",
+      "addr_proto": 34525,
+      "timer": 7372,
+      "timer_sec": 73.72,
+      "rtprot": 2
+    },
+    {
+      "ifindex": 31,
+      "ifname": "lan0bridge",
+      "state": 0,
+      "state_name": "TEMPORARY",
+      "flags": 0,
+      "flags_name": "NONE",
+      "port_ifindex": 20,
+      "port_ifname": "enp27s0",
+      "group": "ff02::1:ff00:1a0",
+      "family": "ipv6",
+      "addr_proto": 34525,
+      "timer": 7372,
+      "timer_sec": 73.72,
+      "rtprot": 2
+    }
+  ],
+  "routers": []
+}
+

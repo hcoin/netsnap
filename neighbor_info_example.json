@@ -1,0 +1,62 @@
+[
+  {
+    "ifindex": 35,
+    "family": "ipv4",
+    "state": 4,
+    "state_name": "STALE",
+    "flags": 0,
+    "flag_names": [],
+    "type": 1,
+    "type_name": "ETHER",
+    "dst": "10.12.112.49",
+    "dst_canonical": "10.12.112.49",
+    "lladdr": "52:54:85:79:00:00",
+    "probes": 0,
+    "cacheinfo": {
+      "confirmed": 197,
+      "used": 85,
+      "updated": 85,
+      "refcnt": 0
+    }
+  },
+  {
+    "ifindex": 35,
+    "family": "ipv4",
+    "state": 4,
+    "state_name": "STALE",
+    "flags": 0,
+    "flag_names": [],
+    "type": 1,
+    "type_name": "ETHER",
+    "dst": "10.12.115.1",
+    "dst_canonical": "10.12.115.1",
+    "lladdr": "5c:b4:7e:94:11:11",
+    "probes": 1,
+    "cacheinfo": {
+      "confirmed": 139,
+      "used": 139,
+      "updated": 93,
+      "refcnt": 0
+    }
+  },
+  {
+    "ifindex": 1,
+    "family": "ipv4",
+    "state": 64,
+    "state_name": "NOARP",
+    "flags": 0,
+    "flag_names": [],
+    "type": 3,
+    "type_name": "type_3",
+    "dst": "0.0.0.0",
+    "dst_canonical": "0.0.0.0",
+    "lladdr": "00:00:00:00:00:00",
+    "probes": 0,
+    "cacheinfo": {
+      "confirmed": 185,
+      "used": 188,
+      "updated": 188,
+      "refcnt": 0
+    }
+  }
+]

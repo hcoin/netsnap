@@ -1,0 +1,495 @@
+{
+  "lo": {
+    "index": 1,
+    "type": 772,
+    "type_name": "loopback",
+    "mtu": 65536,
+    "mac": "00:00:00:00:00:00",
+    "operstate": 0,
+    "operstate_name": "unknown",
+    "flags": 65609,
+    "flag_names": [
+      "UP",
+      "LOOPBACK",
+      "RUNNING",
+      "LOWER_UP"
+    ],
+    "stats": {
+      "rx_packets": 1078066,
+      "tx_packets": 1078066,
+      "rx_bytes": 124792197,
+      "tx_bytes": 124792197,
+      "rx_errors": 0,
+      "tx_errors": 0,
+      "rx_dropped": 0,
+      "tx_dropped": 0,
+      "multicast": 0,
+      "collisions": 0,
+      "rx_length_errors": 0,
+      "rx_over_errors": 0,
+      "rx_crc_errors": 0,
+      "rx_frame_errors": 0,
+      "rx_fifo_errors": 0,
+      "rx_missed_errors": 0,
+      "tx_aborted_errors": 0,
+      "tx_carrier_errors": 0,
+      "tx_fifo_errors": 0,
+      "tx_heartbeat_errors": 0,
+      "tx_window_errors": 0,
+      "rx_compressed": 0,
+      "tx_compressed": 0,
+      "rx_nohandler": 0,
+      "is_64bit": true
+    },
+    "addresses": [
+      {
+        "family": "ipv4",
+        "address": "127.0.0.1",
+        "prefixlen": 8,
+        "scope": 254,
+        "scope_name": "host",
+        "flags": 128,
+        "flag_names": [
+          "PERMANENT"
+        ],
+        "ipinterface": "127.0.0.1/8",
+        "network": "127.0.0.0/8",
+        "netmask": "255.0.0.0",
+        "hostmask": "0.255.255.255",
+        "is_secondary": false,
+        "local": "127.0.0.1",
+        "label": "lo",
+        "cacheinfo": {
+          "preferred_lft": 4294967295,
+          "valid_lft": 4294967295,
+          "created_tstamp": 521,
+          "updated_tstamp": 521,
+          "preferred_lft_str": "forever",
+          "valid_lft_str": "forever"
+        },
+        "extended_flags": 128,
+        "readiness": "ready"
+      },
+      {
+        "family": "ipv6",
+        "address": "::1",
+        "prefixlen": 128,
+        "scope": 254,
+        "scope_name": "host",
+        "flags": 128,
+        "flag_names": [
+          "PERMANENT",
+          "NOPREFIXROUTE"
+        ],
+        "ipinterface": "::1/128",
+        "network": "::1/128",
+        "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "hostmask": "::",
+        "is_temporary": false,
+        "label": "",
+        "cacheinfo": {
+          "preferred_lft": 4294967295,
+          "valid_lft": 4294967295,
+          "created_tstamp": 521,
+          "updated_tstamp": 521,
+          "preferred_lft_str": "forever",
+          "valid_lft_str": "forever"
+        },
+        "extended_flags": 640,
+        "readiness": "ready"
+      }
+    ],
+    "txqlen": 1000,
+    "qdisc": "noqueue",
+    "unknown_ifla_attrs": [
+      32830
+    ],
+    "unknown_ifla_attrs_decoded": [
+      {
+        "number": 32830,
+        "base_number": 62,
+        "nested": true,
+        "name": "IFLA_DEVLINK_PORT (nested)"
+      }
+    ]
+  },
+  "enp4s0": {
+    "index": 2,
+    "type": 1,
+    "type_name": "ether",
+    "mtu": 1500,
+    "mac": "04:d4:00:00:00:00",
+    "operstate": 6,
+    "operstate_name": "up",
+    "flags": 69699,
+    "flag_names": [
+      "UP",
+      "BROADCAST",
+      "RUNNING",
+      "MULTICAST",
+      "LOWER_UP"
+    ],
+    "stats": {
+      "rx_packets": 83090479,
+      "tx_packets": 15442106,
+      "rx_bytes": 54531038746,
+      "tx_bytes": 3252066170,
+      "rx_errors": 0,
+      "tx_errors": 0,
+      "rx_dropped": 6,
+      "tx_dropped": 0,
+      "multicast": 775752,
+      "collisions": 0,
+      "rx_length_errors": 0,
+      "rx_over_errors": 0,
+      "rx_crc_errors": 0,
+      "rx_frame_errors": 0,
+      "rx_fifo_errors": 0,
+      "rx_missed_errors": 0,
+      "tx_aborted_errors": 0,
+      "tx_carrier_errors": 0,
+      "tx_fifo_errors": 0,
+      "tx_heartbeat_errors": 0,
+      "tx_window_errors": 0,
+      "rx_compressed": 0,
+      "tx_compressed": 0,
+      "rx_nohandler": 0,
+      "is_64bit": true
+    },
+    "addresses": [
+      {
+        "family": "ipv4",
+        "address": "10.12.113.100",
+        "prefixlen": 20,
+        "scope": 0,
+        "scope_name": "universe",
+        "flags": 0,
+        "flag_names": [
+          "NOPREFIXROUTE"
+        ],
+        "ipinterface": "10.12.113.100/20",
+        "network": "10.12.112.0/20",
+        "netmask": "255.255.240.0",
+        "hostmask": "0.0.15.255",
+        "is_secondary": false,
+        "local": "10.12.113.100",
+        "broadcast": "10.12.127.255",
+        "label": "enp4s0",
+        "cacheinfo": {
+          "preferred_lft": 12168,
+          "valid_lft": 12168,
+          "created_tstamp": 1823,
+          "updated_tstamp": 75751810,
+          "preferred_lft_str": "12168s",
+          "valid_lft_str": "12168s"
+        },
+        "extended_flags": 512,
+        "readiness": "ready"
+      },
+      {
+        "family": "ipv6",
+        "address": "fc00:1002:c7::100",
+        "prefixlen": 128,
+        "scope": 0,
+        "scope_name": "universe",
+        "flags": 0,
+        "flag_names": [
+          "NOPREFIXROUTE"
+        ],
+        "ipinterface": "fc00:1002:c7::100/128",
+        "network": "fc00:1002:c7::100/128",
+        "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "hostmask": "::",
+        "is_temporary": false,
+        "label": "",
+        "cacheinfo": {
+          "preferred_lft": 14725,
+          "valid_lft": 14725,
+          "created_tstamp": 2784,
+          "updated_tstamp": 76007510,
+          "preferred_lft_str": "14725s",
+          "valid_lft_str": "14725s"
+        },
+        "extended_flags": 512,
+        "readiness": "ready"
+      },
+      {
+        "family": "ipv6",
+        "address": "fe80::b72:9144:eb09:f000",
+        "prefixlen": 64,
+        "scope": 253,
+        "scope_name": "link",
+        "flags": 128,
+        "flag_names": [
+          "PERMANENT",
+          "NOPREFIXROUTE"
+        ],
+        "ipinterface": "fe80::b72:9144:eb09:f000/64",
+        "network": "fe80::/64",
+        "netmask": "ffff:ffff:ffff:ffff::",
+        "hostmask": "::ffff:ffff:ffff:ffff",
+        "is_temporary": false,
+        "label": "",
+        "cacheinfo": {
+          "preferred_lft": 4294967295,
+          "valid_lft": 4294967295,
+          "created_tstamp": 1805,
+          "updated_tstamp": 1805,
+          "preferred_lft_str": "forever",
+          "valid_lft_str": "forever"
+        },
+        "extended_flags": 640,
+        "readiness": "ready"
+      }
+    ],
+    "txqlen": 1000,
+    "qdisc": "fq_codel",
+    "unknown_ifla_attrs": [
+      57,
+      32830
+    ],
+    "unknown_ifla_attrs_decoded": [
+      {
+        "number": 57,
+        "base_number": 57,
+        "nested": false,
+        "name": "IFLA_PARENT_DEV_BUS_NAME"
+      },
+      {
+        "number": 32830,
+        "base_number": 62,
+        "nested": true,
+        "name": "IFLA_DEVLINK_PORT (nested)"
+      }
+    ]
+  },
+  "docker0": {
+    "index": 3,
+    "type": 1,
+    "type_name": "ether",
+    "mtu": 1500,
+    "mac": "02:42:0c:74:a1:00",
+    "operstate": 2,
+    "operstate_name": "down",
+    "flags": 4099,
+    "flag_names": [
+      "UP",
+      "BROADCAST",
+      "MULTICAST"
+    ],
+    "stats": {
+      "rx_packets": 0,
+      "tx_packets": 0,
+      "rx_bytes": 0,
+      "tx_bytes": 0,
+      "rx_errors": 0,
+      "tx_errors": 0,
+      "rx_dropped": 0,
+      "tx_dropped": 0,
+      "multicast": 0,
+      "collisions": 0,
+      "rx_length_errors": 0,
+      "rx_over_errors": 0,
+      "rx_crc_errors": 0,
+      "rx_frame_errors": 0,
+      "rx_fifo_errors": 0,
+      "rx_missed_errors": 0,
+      "tx_aborted_errors": 0,
+      "tx_carrier_errors": 0,
+      "tx_fifo_errors": 0,
+      "tx_heartbeat_errors": 0,
+      "tx_window_errors": 0,
+      "rx_compressed": 0,
+      "tx_compressed": 0,
+      "rx_nohandler": 0,
+      "is_64bit": true
+    },
+    "addresses": [
+      {
+        "family": "ipv4",
+        "address": "172.17.0.1",
+        "prefixlen": 16,
+        "scope": 0,
+        "scope_name": "universe",
+        "flags": 128,
+        "flag_names": [
+          "PERMANENT"
+        ],
+        "ipinterface": "172.17.0.1/16",
+        "network": "172.17.0.0/16",
+        "netmask": "255.255.0.0",
+        "hostmask": "0.0.255.255",
+        "is_secondary": false,
+        "local": "172.17.0.1",
+        "broadcast": "172.17.255.255",
+        "label": "docker0",
+        "cacheinfo": {
+          "preferred_lft": 4294967295,
+          "valid_lft": 4294967295,
+          "created_tstamp": 1929,
+          "updated_tstamp": 1929,
+          "preferred_lft_str": "forever",
+          "valid_lft_str": "forever"
+        },
+        "extended_flags": 128,
+        "readiness": "down"
+      }
+    ],
+    "txqlen": 0,
+    "qdisc": "noqueue",
+    "kind": "bridge",
+    "bridge_config": {
+      "stp_enabled": false,
+      "forward_delay": 1500,
+      "forward_delay_sec": 15.0,
+      "hello_time": 200,
+      "hello_time_sec": 2.0,
+      "max_age": 2000,
+      "max_age_sec": 20.0,
+      "hello_timer": 0,
+      "hello_timer_sec": 0.0,
+      "tcn_timer": 0,
+      "tcn_timer_sec": 0.0,
+      "topology_change_timer": 0,
+      "topology_change_timer_sec": 0.0,
+      "gc_timer": 17255,
+      "gc_timer_sec": 172.55,
+      "topology_change": false,
+      "topology_change_detected": false,
+      "priority": 32768,
+      "root_id": "8000.02:42:0c:74:a1:d5",
+      "bridge_id": "8000.02:42:0c:74:a1:d5",
+      "root_port": 0,
+      "root_path_cost": 0,
+      "ageing_time": 30000,
+      "ageing_time_sec": 300.0,
+      "fdb_n_learned": 0,
+      "fdb_max_learned": 0,
+      "vlan_filtering": false,
+      "vlan_protocol": 129,
+      "vlan_protocol_hex": "0x0081",
+      "vlan_default_pvid": 1,
+      "vlan_stats_enabled": false,
+      "vlan_stats_per_port": false,
+      "group_fwd_mask": 0,
+      "group_fwd_mask_hex": "0x0000",
+      "group_addr": "01:80:c2:00:00:00",
+      "mcast_snooping": true,
+      "mcast_router": 1,
+      "mcast_router_mode": "auto",
+      "mcast_querier": false,
+      "mcast_query_use_ifaddr": false,
+      "mcast_stats_enabled": false,
+      "mcast_igmp_version": 2,
+      "mcast_mld_version": 1,
+      "mcast_hash_elasticity": 16,
+      "mcast_hash_max": 4096,
+      "mcast_last_member_cnt": 2,
+      "mcast_startup_query_cnt": 2,
+      "mcast_last_member_intvl": 100,
+      "mcast_last_member_intvl_sec": 1.0,
+      "mcast_membership_intvl": 26000,
+      "mcast_membership_intvl_sec": 260.0,
+      "mcast_querier_intvl": 25500,
+      "mcast_querier_intvl_sec": 255.0,
+      "mcast_query_intvl": 12500,
+      "mcast_query_intvl_sec": 125.0,
+      "mcast_query_response_intvl": 1000,
+      "mcast_query_response_intvl_sec": 10.0,
+      "mcast_startup_query_intvl": 3125,
+      "mcast_startup_query_intvl_sec": 31.25,
+      "nf_call_iptables": false,
+      "nf_call_ip6tables": false,
+      "nf_call_arptables": false,
+      "multi_boolopt": 30064771072,
+      "multi_boolopt_hex": "0x0000000700000000"
+    },
+    "unknown_ifla_attrs": [
+      32830
+    ],
+    "unknown_ifla_attrs_decoded": [
+      {
+        "number": 32830,
+        "base_number": 62,
+        "nested": true,
+        "name": "IFLA_DEVLINK_PORT (nested)"
+      }
+    ]
+  },
+  "enp4s0.100": {
+    "index": 4,
+    "type": 1,
+    "type_name": "ether",
+    "mtu": 1500,
+    "mac": "04:d4:c4:ad:05:00",
+    "operstate": 6,
+    "operstate_name": "up",
+    "flags": 69699,
+    "flag_names": [
+      "UP",
+      "BROADCAST",
+      "RUNNING",
+      "MULTICAST",
+      "LOWER_UP"
+    ],
+    "stats": {
+      "rx_packets": 0,
+      "tx_packets": 0,
+      "rx_bytes": 0,
+      "tx_bytes": 0,
+      "rx_errors": 0,
+      "tx_errors": 0,
+      "rx_dropped": 0,
+      "tx_dropped": 0,
+      "multicast": 0,
+      "collisions": 0,
+      "rx_length_errors": 0,
+      "rx_over_errors": 0,
+      "rx_crc_errors": 0,
+      "rx_frame_errors": 0,
+      "rx_fifo_errors": 0,
+      "rx_missed_errors": 0,
+      "tx_aborted_errors": 0,
+      "tx_carrier_errors": 0,
+      "tx_fifo_errors": 0,
+      "tx_heartbeat_errors": 0,
+      "tx_window_errors": 0,
+      "rx_compressed": 0,
+      "tx_compressed": 0,
+      "rx_nohandler": 0,
+      "is_64bit": true
+    },
+    "addresses": [],
+    "link": 2,
+    "txqlen": 1000,
+    "qdisc": "noqueue",
+    "kind": "vlan",
+    "vlan": {
+      "id": 100,
+      "protocol": {
+        "value": "0x8100",
+        "name": "802.1Q"
+      },
+      "flags": {
+        "value": 1,
+        "mask": 4294967295,
+        "decoded": {
+          "reorder_hdr": true
+        }
+      }
+    },
+    "unknown_ifla_attrs": [
+      32830
+    ],
+    "unknown_ifla_attrs_decoded": [
+      {
+        "number": 32830,
+        "base_number": 62,
+        "nested": true,
+        "name": "IFLA_DEVLINK_PORT (nested)"
+      }
+    ],
+    "link_name": "enp4s0"
+  }
+}
+
