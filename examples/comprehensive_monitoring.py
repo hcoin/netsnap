@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Example: Comprehensive network monitoring with NetMon
+Example: Comprehensive network monitoring with NetSnap
 
 This example demonstrates how to gather complete network information
 and create a monitoring snapshot.
@@ -13,7 +13,7 @@ from pathlib import Path
 
 def gather_network_snapshot():
     """Gather complete network information snapshot"""
-    from netmon import device_info
+    from netsnap import device_info
     
     snapshot = {
         'timestamp': datetime.now().isoformat(),
@@ -94,7 +94,7 @@ def save_snapshot(snapshot, filename='network_snapshot.json'):
     print(f"\n✓ Snapshot saved to: {output_path.absolute()}")
 
 def main():
-    print("NetMon Comprehensive Monitoring Example")
+    print("NetSnap Comprehensive Monitoring Example")
     print("=" * 70)
     
     try:
@@ -116,7 +116,7 @@ def main():
         sys.exit(1)
     except ImportError as e:
         print(f"\n✗ Import error: {e}")
-        print("  Install netmon package first: pip install netmon")
+        print("  Install netsnap package first: pip install netsnap")
         sys.exit(1)
     except Exception as e:
         print(f"\n✗ Error: {e}")

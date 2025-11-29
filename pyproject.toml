@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel", "cffi>=1.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "netmon"
+name = "netsnap"
 version = "1.0.0"
 description = "Comprehensive Linux network snapshot toolkit and python library using RTNetlink and Generic Netlink"
 readme = "README.md"
@@ -60,23 +60,23 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/hcoin/netmon"
-Documentation = "https://github.com/hcoin/netmon#readme"
-Repository = "https://github.com/hcoin/netmon"
-"Bug Tracker" = "https://github.com/hcoin/netmon/issues"
+Homepage = "https://github.com/hcoin/netsnap"
+Documentation = "https://github.com/hcoin/netsnap#readme"
+Repository = "https://github.com/hcoin/netsnap"
+"Bug Tracker" = "https://github.com/hcoin/netsnap/issues"
 
 [project.scripts]
-netmon-device = "netmon.device_info:main"
-netmon-route = "netmon.route_info:main"
-netmon-neighbor = "netmon.neighbor_info:main"
-netmon-mdb = "netmon.mdb_info:main"
-netmon-rule = "netmon.rule_info:main"
+netsnap-device = "netsnap.device_info:main"
+netsnap-route = "netsnap.route_info:main"
+netsnap-neighbor = "netsnap.neighbor_info:main"
+netsnap-mdb = "netsnap.mdb_info:main"
+netsnap-rule = "netsnap.rule_info:main"
 
 [tool.setuptools]
-packages = ["netmon"]
+packages = ["netsnap"]
 
 [tool.setuptools.package-data]
-netmon = ["*.html"]
+netsnap = ["*.html"]
 
 [tool.black]
 line-length = 100
@@ -87,7 +87,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "--cov=netmon --cov-report=html --cov-report=term-missing"
+addopts = "--cov=netsnap --cov-report=html --cov-report=term-missing"
 
 [tool.mypy]
 python_version = "3.8"

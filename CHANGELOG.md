@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the NetMon project will be documented in this file.
+All notable changes to the netsnap project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-11-21
 
 ### Added
-- Initial release of NetMon package
-- Network device and address information tool (`netmon-device`)
+- Initial release of netsnap package
+- Network device and address information tool (`device_info`)
   - Complete RTNetlink support for interface queries
   - WireGuard interface support via Generic Netlink
   - Bridge configuration and STP status
@@ -17,26 +17,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive attribute decoding (100+ interface attributes)
   - IPv4 and IPv6 address information with readiness computation
   
-- Routing table information tool (`netmon-route`)
+- Routing table information tool (`route_info`)
   - IPv4 and IPv6 route queries
   - Support for multiple routing tables
   - Multipath route (ECMP) support
   - Route metrics and protocols
   - Route types and scopes
   
-- Neighbor table information tool (`netmon-neighbor`)
+- Neighbor table information tool (`neighbor_info`)
   - IPv4 ARP cache entries
   - IPv6 Neighbor Discovery (NDP) cache
   - Bridge FDB (Forwarding Database) entries
   - All neighbor states (REACHABLE, STALE, DELAY, PROBE, FAILED, etc.)
   - Hardware address mapping
   
-- Multicast database tool (`netmon-mdb`)
+- Multicast database tool (`mdb_info`)
   - Bridge multicast forwarding database
   - Multicast group memberships
   - Port-specific multicast entries
   
-- Routing rules tool (`netmon-rule`)
+- Routing rules tool (`rule_info`)
   - IP routing policy database (RPDB)
   - Rule priorities and actions
   - Source/destination selectors

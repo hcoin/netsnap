@@ -1,12 +1,12 @@
-# NetMon - Linux Network Monitoring Toolkit
+# NetSnap - Linux Network Monitoring Toolkit
 
-A comprehensive package for pulling nearly all details of Linux networking into reliable and broadly usable form.  From configuration to statistics, NetMon uses the fastest available api: RTNetlink and Generic Netlink. NetMon can fuction in either standalone fashion generating JSON output, or provide Python 3.8+ objects.  NetMon provides deep visibility into network interfaces, routing tables, neighbor tables, multicast databases, and routing rules through direct kernel communication via CFFI. More maintainable than alternatives as NetMon avoids any hard-coded duplication of numeric constants.  This improves NetMon's portability and maintainability across distros and kernel releases since the kernel running on each system is the 'single source of truth' for all symbolic definitions.
+A comprehensive package for pulling nearly all details of Linux networking into reliable and broadly usable form.  From configuration to statistics, NetSnap uses the fastest available api: RTNetlink and Generic Netlink. NetSnap can fuction in either standalone fashion generating JSON output, or provide Python 3.8+ objects.  NetSnap provides deep visibility into network interfaces, routing tables, neighbor tables, multicast databases, and routing rules through direct kernel communication via CFFI. More maintainable than alternatives as NetSnap avoids any hard-coded duplication of numeric constants.  This improves NetSnap's portability and maintainability across distros and kernel releases since the kernel running on each system is the 'single source of truth' for all symbolic definitions.
 
 In use cases where network configuration changes happen every second or less, where snapshots are not enough as each change must be tracked in real time, or one-time-per-new-kernel CFFI recompile time is too expensive, consider alternatives such as pyroute2. 
 
 ## Features
 
-- **Network Interfaces & Addresses** (`netmon-device`)
+- **Network Interfaces & Addresses** (`netsnap-device`)
   - Complete interface information (physical, virtual, bridge, VLAN, WireGuard, etc.)
   - IPv4 and IPv6 address details with scope and flags
   - Bridge port configuration and STP status
@@ -15,7 +15,7 @@ In use cases where network configuration changes happen every second or less, wh
   - Interface statistics and capabilities
   - MTU, MAC addresses, and link states
 
-- **Routing Tables** (`netmon-route`)
+- **Routing Tables** (`netsnap-route`)
   - IPv4 and IPv6 routing tables
   - Main, local, and custom routing tables
   - Gateway, destination, and source addresses
@@ -23,7 +23,7 @@ In use cases where network configuration changes happen every second or less, wh
   - Multipath routes (ECMP) support
   - Route types (UNICAST, LOCAL, BROADCAST, MULTICAST, etc.)
 
-- **Neighbor Tables** (`netmon-neighbor`)
+- **Neighbor Tables** (`netsnap-neighbor`)
   - IPv4 ARP cache entries
   - IPv6 Neighbor Discovery (NDP) cache
   - Bridge FDB (Forwarding Database) entries
@@ -31,12 +31,12 @@ In use cases where network configuration changes happen every second or less, wh
   - Hardware addresses and interface mappings
   - Proxy entries and router flags
 
-- **Multicast Database** (`netmon-mdb`)
+- **Multicast Database** (`netsnap-mdb`)
   - Bridge multicast forwarding database
   - Multicast group memberships
   - Port-specific multicast entries
 
-- **Routing Rules** (`netmon-rule`)
+- **Routing Rules** (`netsnap-rule`)
   - IP routing policy database (RPDB)
   - Rule priorities and actions
   - Source/destination selectors
@@ -47,22 +47,22 @@ In use cases where network configuration changes happen every second or less, wh
 ### From PyPI
 
 ```bash
-pip install netmon
+pip install netsnap
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/hcoin/netmon.git
-cd netmon
+git clone https://github.com/hcoin/netsnap.git
+cd netsnap
 pip install -e .
 ```
 
 ### Development Installation
 
 ```bash
-git clone https://github.com/hcoin/netmon.git
-cd netmon
+git clone https://github.com/hcoin/netsnap.git
+cd netsnap
 pip install -e ".[dev]"
 ```
 
@@ -83,100 +83,100 @@ All commands require root privileges as they interact with kernel netlink socket
 
 ```bash
 # Full JSON output of all interfaces and addresses
-sudo netmon-device
+sudo netsnap-device
 
 # Show extended interface details
-sudo netmon-device --extended
+sudo netsnap-device --extended
 
 # Show detailed address information
-sudo netmon-device --addresses
+sudo netsnap-device --addresses
 
 # Show only WireGuard interfaces
-sudo netmon-device --wireguard
+sudo netsnap-device --wireguard
 
 # Show summary of special interfaces
-sudo netmon-device --summary
+sudo netsnap-device --summary
 ```
 
 ### Routing Tables
 
 ```bash
 # Full routing table in JSON
-sudo netmon-route
+sudo netsnap-route
 
 # Human-readable summary
-sudo netmon-route --summary
+sudo netsnap-route --summary
 
 # IPv4 routes only
-sudo netmon-route --ipv4
+sudo netsnap-route --ipv4
 
 # IPv6 routes only
-sudo netmon-route --ipv6
+sudo netsnap-route --ipv6
 
 # Specific routing table
-sudo netmon-route --table main
+sudo netsnap-route --table main
 
 # Disable unknown attribute collection
-sudo netmon-route --no-unknown-attrs
+sudo netsnap-route --no-unknown-attrs
 ```
 
 ### Neighbor Tables
 
 ```bash
 # Full neighbor table in JSON
-sudo netmon-neighbor
+sudo netsnap-neighbor
 
 # Human-readable summary
-sudo netmon-neighbor --summary
+sudo netsnap-neighbor --summary
 
 # IPv4 ARP entries only
-sudo netmon-neighbor --arp
+sudo netsnap-neighbor --arp
 
 # IPv6 NDP entries only
-sudo netmon-neighbor --ndp
+sudo netsnap-neighbor --ndp
 
 # Bridge FDB entries only
-sudo netmon-neighbor --bridge
+sudo netsnap-neighbor --bridge
 
 # Filter by interface
-sudo netmon-neighbor --interface eth0
+sudo netsnap-neighbor --interface eth0
 ```
 
 ### Multicast Database
 
 ```bash
 # Full multicast database in JSON
-sudo netmon-mdb
+sudo netsnap-mdb
 
 # Human-readable summary
-sudo netmon-mdb --summary
+sudo netsnap-mdb --summary
 
 # Filter by interface
-sudo netmon-mdb --interface br0
+sudo netsnap-mdb --interface br0
 ```
 
 ### Routing Rules
 
 ```bash
 # Full routing rules in JSON
-sudo netmon-rule
+sudo netsnap-rule
 
 # Human-readable summary
-sudo netmon-rule --summary
+sudo netsnap-rule --summary
 
 # IPv4 rules only
-sudo netmon-rule --ipv4
+sudo netsnap-rule --ipv4
 
 # IPv6 rules only
-sudo netmon-rule --ipv6
+sudo netsnap-rule --ipv6
 ```
 
 ## Python API
 
-You can also use NetMon programmatically in your Python code:
+You can also use NetSnap programmatically in your Python code:
 
 ```python
-from netmon import device_info, route_info, neighbor_info
+from netsnap import device_info, route_info, neighbor_info
 
 # Get all network interfaces
 interfaces = device_info.get_interfaces()
@@ -218,7 +218,7 @@ Example output structure:
 
 ### Architecture
 
-NetMon uses CFFI (C Foreign Function Interface) to compile and execute C code that directly communicates with the Linux kernel via Netlink sockets. This approach provides:
+NetSnap uses CFFI (C Foreign Function Interface) to compile and execute C code that directly communicates with the Linux kernel via Netlink sockets. This approach provides:
 
 - **Performance**: Direct system calls without subprocess overhead
 - **Completeness**: Access to all kernel networking attributes
@@ -244,8 +244,8 @@ The package implements the following Netlink protocols:
 
 ## Security Considerations
 
-- **Root Access**: All netmon commands require root/sudo privileges to query kernel networking state
-- **Read-Only**: NetMon only reads network configuration; it never modifies kernel state
+- **Root Access**: All netsnap commands require root/sudo privileges to query kernel networking state
+- **Read-Only**: NetSnap only reads network configuration; it never modifies kernel state
 - **System Impact**: Minimal performance impact; queries complete in milliseconds
 
 ## Troubleshooting
@@ -255,7 +255,7 @@ The package implements the following Netlink protocols:
 ```bash
 # Error: Permission denied when opening netlink socket
 # Solution: Run with sudo
-sudo netmon-device
+sudo netsnap-device
 ```
 
 ### Python Version Error
@@ -282,18 +282,18 @@ Contributions are welcome! Please feel free to submit pull requests, report bugs
 ### Development Setup
 
 ```bash
-git clone https://github.com/hcoin/netmon.git
-cd netmon
+git clone https://github.com/hcoin/netsnap.git
+cd netsnap
 pip install -e ".[dev]"
 
 # Run tests
 pytest
 
 # Format code
-black netmon/
+black netsnap/
 
 # Type checking
-mypy netmon/
+mypy netsnap/
 ```
 
 ## License
@@ -318,4 +318,4 @@ Harry Coin <hcoin@quietfountain.com>
   - Multicast database and routing rules
   - DPLL pin information support
   - Comprehensive bridge and STP support
-# netmon
+# netsnap

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Example: Basic usage of NetMon package
+Example: Basic usage of NetSnap package
 
-This example demonstrates how to programmatically use the netmon package
+This example demonstrates how to programmatically use the netsnap package
 to query network information.
 """
 
@@ -10,12 +10,12 @@ import json
 import sys
 
 def main():
-    print("NetMon Package Usage Example")
+    print("NetSnap Package Usage Example")
     print("=" * 70)
     
     # Note: These modules require root privileges
     try:
-        from netmon import device_info, route_info, neighbor_info
+        from netsnap import device_info, route_info, neighbor_info
         
         print("\n1. Getting network interfaces...")
         print("-" * 70)
@@ -45,7 +45,7 @@ def main():
         sys.exit(1)
     except ImportError as e:
         print(f"\n✗ Import error: {e}")
-        print("  Install netmon package first: pip install netmon")
+        print("  Install netsnap package first: pip install netsnap")
         sys.exit(1)
     except Exception as e:
         print(f"\n✗ Error: {e}")

@@ -1,13 +1,13 @@
-# Contributing to NetMon
+# Contributing to NetSnap
 
-Thank you for considering contributing to NetMon! This document provides guidelines and instructions for contributing.
+Thank you for considering contributing to NetSnap! This document provides guidelines and instructions for contributing.
 
 ## Development Setup
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/hcoin/netmon.git
-   cd netmon
+   git clone https://github.com/hcoin/netsnap.git
+   cd netsnap
    ```
 
 2. **Create a virtual environment**:
@@ -24,8 +24,8 @@ Thank you for considering contributing to NetMon! This document provides guideli
 ## Project Structure
 
 ```
-netmon/
-├── netmon/              # Main package directory
+netsnap/
+├── netsnap/              # Main package directory
 │   ├── __init__.py      # Package initialization
 │   ├── device_info.py   # Network device/address information
 │   ├── route_info.py    # Routing table information
@@ -60,7 +60,7 @@ We follow standard Python conventions:
 Use `black` for code formatting:
 
 ```bash
-black netmon/
+black netsnap/
 ```
 
 ### Linting
@@ -68,7 +68,7 @@ black netmon/
 Check code quality with `flake8`:
 
 ```bash
-flake8 netmon/
+flake8 netsnap/
 ```
 
 ### Type Checking
@@ -76,7 +76,7 @@ flake8 netmon/
 Use `mypy` for type checking:
 
 ```bash
-mypy netmon/
+mypy netsnap/
 ```
 
 ## Testing
@@ -88,7 +88,7 @@ Run tests with pytest:
 pytest
 
 # Run with coverage
-pytest --cov=netmon --cov-report=html
+pytest --cov=netsnap --cov-report=html
 
 # Run specific test file
 pytest tests/test_package.py
@@ -97,7 +97,7 @@ pytest tests/test_package.py
 pytest -v
 ```
 
-Note: Many netmon features require root privileges and will be skipped in regular test runs.
+Note: Many netsnap features require root privileges and will be skipped in regular test runs.
 
 ## Making Changes
 
@@ -117,10 +117,10 @@ Note: Many netmon features require root privileges and will be skipped in regula
    pytest
    
    # Format code
-   black netmon/
+   black netsnap/
    
    # Check style
-   flake8 netmon/
+   flake8 netsnap/
    ```
 
 4. **Commit your changes**:

@@ -4,7 +4,8 @@ include LICENSE
 include CHANGELOG.md
 
 # Include HTML documentation
-recursive-include netmon *.html
+recursive-include netsnap *.html
+recursive-include docs *.html
 
 # Exclude unnecessary files
 global-exclude *.pyc

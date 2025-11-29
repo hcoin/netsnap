@@ -1,3 +1,3 @@
 """
-NetMon test suite
+NetSnap test suite
 """

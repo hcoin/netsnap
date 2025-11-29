@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for netmon package.
+Setup script for netsnap package.
 
 This file exists for backwards compatibility with older build tools.
 The primary configuration is in pyproject.toml.
@@ -13,22 +13,22 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="netmon",
+    name="netsnap",
     version="1.0.0",
     author="Harry Coin",
     author_email="hcoin@quietfountain.com",
     description="Comprehensive Linux network snapshot toolkit/python library using RTNetlink and Generic Netlink",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/hcoin/netmon",
+    url="https://github.com/hcoin/netsnap",
     project_urls={
-        "Bug Tracker": "https://github.com/hcoin/netmon/issues",
-        "Documentation": "https://github.com/hcoin/netmon#readme",
-        "Source Code": "https://github.com/hcoin/netmon",
+        "Bug Tracker": "https://github.com/hcoin/netsnap/issues",
+        "Documentation": "https://github.com/hcoin/netsnap#readme",
+        "Source Code": "https://github.com/hcoin/netsnap",
     },
-    packages=["netmon"],
+    packages=["netsnap"],
     package_data={
-        "netmon": ["*.html"],
+        "netsnap": ["*.html"],
     },
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -62,11 +62,11 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "netmon-device=netmon.device_info:main",
-            "netmon-route=netmon.route_info:main",
-            "netmon-neighbor=netmon.neighbor_info:main",
-            "netmon-mdb=netmon.mdb_info:main",
-            "netmon-rule=netmon.rule_info:main",
+            "netsnap-device=netsnap.device_info:main",
+            "netsnap-route=netsnap.route_info:main",
+            "netsnap-neighbor=netsnap.neighbor_info:main",
+            "netsnap-mdb=netsnap.mdb_info:main",
+            "netsnap-rule=netsnap.rule_info:main",
         ],
     },
 )
