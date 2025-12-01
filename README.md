@@ -77,7 +77,14 @@ pip install -e ".[dev]"
 
 ## Usage
 
-All commands require root privileges as they interact with kernel netlink sockets.
+To display all information, the commands require root privileges as they interact with kernel
+netlink sockets.  However, partial information is returned when run with lesser privilege.  
+
+### Show everything in JSON
+```bash
+sudo netsnap-snapnet
+```
+
 
 ### Network Interfaces and Addresses
 
@@ -96,6 +103,7 @@ sudo netsnap-device --wireguard
 
 # Show summary of special interfaces
 sudo netsnap-device --summary
+
 ```
 
 ### Routing Tables
@@ -200,18 +208,91 @@ All tools output JSON by default for easy parsing and integration with other too
 Example output structure:
 
 ```json
-{
-  "metadata": {
-    "timestamp": "2025-11-21T22:30:00.000000",
-    "collection_time_ms": 15.234,
-    "hostname": "server01"
-  },
-  "summary": {
-    "total_interfaces": 12,
-    "up_interfaces": 8
-  },
-  "interfaces": [...]
-}
+  "enp4s0": {
+    "index": 2,
+    "type": 1,
+    "type_name": "ether",
+    "mtu": 1500,
+    "mac": "04:d4:c4:11:22:33",
+    "operstate": 6,
+    "operstate_name": "up",
+    "flags": 69699,
+    "flag_names": [
+      "UP",
+      "BROADCAST",
+      "RUNNING",
+      "MULTICAST",
+      "LOWER_UP"
+    ],
+    "stats": {
+      "rx_packets": 48184591,
+      "tx_packets": 10588809,
+      "rx_bytes": 31814972571,
+      "tx_bytes": 1809544839,
+      "rx_errors": 0,
+      "tx_errors": 0,
+       ...
+      "is_64bit": true
+    },
+    "addresses": [
+      {
+        "family": "ipv4",
+        "address": "10.12.119.1",
+        "prefixlen": 20,
+        "scope": 0,
+        "scope_name": "universe",
+        "flags": 0,
+        "flag_names": [
+          "NOPREFIXROUTE"
+        ],
+        "ipinterface": "10.12.119.1/20",
+        "network": "10.12.112.0/20",
+        "netmask": "255.255.240.0",
+        "hostmask": "0.0.15.255",
+        "is_secondary": false,
+        "local": "10.12.119.1",
+        "broadcast": "10.12.127.255",
+        "label": "enp4s0",
+        "cacheinfo": {
+          "preferred_lft": 7660,
+          "valid_lft": 7660,
+          "created_tstamp": 1853,
+          "updated_tstamp": 41251844,
+          "preferred_lft_str": "7660s",
+          "valid_lft_str": "7660s"
+        },
+        "extended_flags": 512,
+        "readiness": "ready"
+      },
+      {
+        "family": "ipv6",
+        "address": "fc00:1002:c79::1",
+        "prefixlen": 128,
+        "scope": 0,
+        "scope_name": "universe",
+        "flags": 0,
+        "flag_names": [
+          "NOPREFIXROUTE"
+        ],
+        "ipinterface": "fc00:1002:c79::1/128",
+        "network": "fc00:1002:c79::1/128",
+        "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "hostmask": "::",
+        "is_temporary": false,
+        "label": "",
+        "cacheinfo": {
+          "preferred_lft": 10482,
+          "valid_lft": 10482,
+          "created_tstamp": 2330,
+          "updated_tstamp": 41534079,
+          "preferred_lft_str": "10482s",
+          "valid_lft_str": "10482s"
+        },
+        "extended_flags": 512,
+        "readiness": "ready"
+      },
+      ...
+
 ```
 
 ## Technical Details

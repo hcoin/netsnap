@@ -5,6 +5,34 @@ All notable changes to the netsnap project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-11-30
+
+### Changed
+- When run as a shell command with no arguments, the output is now
+  undecorated pure json, ready to parse.  Added -t --text for those
+  who want text/decorated output.  Added -j to all commands to
+  force / ensure json output (as is often the habit on command
+  line utilities).
+
+- Readme now mentions better maintainability dervied from
+  using the constants found in the kernel at runtime to map kernel
+  responses passed as integers onto the correct symbolic meaning.
+  No hard-coded kernel constants in the python code.
+  
+- added -d <devname> and --device <devname> to device_info to
+  filter output to one device.
+  
+- improved tests, all pass.
+
+### Added
+
+- snapnet.py -- combines all other output into single
+  comprehensive json snapshot of the current kernel.
+  use snapnet.py -u to include new/unknown kernel
+  attributes in the output.
+  
+
+
 ## [1.0.0] - 2025-11-21
 
 ### Added
@@ -63,5 +91,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional netlink family support
 - Performance metrics collection
 - Historical data tracking
-- Configuration file support
-- Web dashboard interface
+- Comprehensive snapshot command.
+
+

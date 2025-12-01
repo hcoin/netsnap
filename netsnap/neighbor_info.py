@@ -31,18 +31,19 @@ Install:
     pip install cffi setuptools
 
 Usage:
-    sudo python3 neighsnapshotter.py                    # Full JSON output
-    sudo python3 neighsnapshotter.py --summary          # Human-readable summary
-    sudo python3 neighsnapshotter.py --arp              # IPv4 ARP only
-    sudo python3 neighsnapshotter.py --ndp              # IPv6 NDP only
-    sudo python3 neighsnapshotter.py --bridge           # Bridge FDB only
-    sudo python3 neighsnapshotter.py --interface eth0   # Filter by interface
+    sudo python3 neighbor_info.py                    # Full JSON output
+    sudo python3 neighbor_info.py --summary          # Human-readable summary
+    sudo python3 neighbor_info.py --arp              # IPv4 ARP only
+    sudo python3 neighbor_info.py --ndp              # IPv6 NDP only
+    sudo python3 neighbor_info.py --bridge           # Bridge FDB only
+    sudo python3 neighbor_info.py -d eth0            # Filter by device/interface
+    sudo python3 neighbor_info.py --device wlan0     # Filter by device name
 """
 
 from cffi import FFI
 import json
 import sys
-#import os
+#import socket
 import ipaddress
 from typing import Dict, List, Any, Optional
 
@@ -60,7 +61,7 @@ if sys.version_info >= (3, 12):
             "Install it with: pip install setuptools"
         )
 
-# C library source code - RTM_GETNEIGH support
+# C library source code - RTM_GETNEIGH support with ifname lookup
 C_SOURCE = r"""
 #include <stdio.h>
 #include <stdlib.h>
@@ -102,6 +103,7 @@ typedef struct {
 // Neighbor entry information
 typedef struct {
     int ifindex;
+    char ifname[IFNAMSIZ];     // Interface name (NEW - looked up in C)
     unsigned char family;
     unsigned char state;
     unsigned char flags;
@@ -224,419 +226,253 @@ int nl_send_getneigh(int sock, unsigned int* seq_out, int family) {
     } req;
     
     memset(&req, 0, sizeof(req));
+    
+    unsigned int seq = nl_generate_seq();
+    if (seq_out) *seq_out = seq;
+    
     req.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
     req.nlh.nlmsg_type = RTM_GETNEIGH;
     req.nlh.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
-    req.nlh.nlmsg_seq = nl_generate_seq();
+    req.nlh.nlmsg_seq = seq;
     req.nlh.nlmsg_pid = 0;
-    req.ndm.ndm_family = family;  // AF_UNSPEC for all, AF_INET, AF_INET6, AF_BRIDGE
     
-    if (seq_out) {
-        *seq_out = req.nlh.nlmsg_seq;
-    }
+    req.ndm.ndm_family = family;
+    req.ndm.ndm_state = 0xFF;
     
-    return send(sock, &req, req.nlh.nlmsg_len, 0);
+    ssize_t sent = send(sock, &req, req.nlh.nlmsg_len, 0);
+    return (sent == req.nlh.nlmsg_len) ? 0 : -1;
 }
 
 // Receive netlink response
 response_buffer_t* nl_recv_response(int sock, unsigned int expected_seq) {
-    response_buffer_t* buf = malloc(sizeof(response_buffer_t));
-    if (!buf) return NULL;
+    response_buffer_t* resp = calloc(1, sizeof(response_buffer_t));
+    if (!resp) return NULL;
     
-    buf->capacity = 65536;
-    buf->length = 0;
-    buf->seq = expected_seq;
-    buf->data = malloc(buf->capacity);
-    if (!buf->data) {
-        free(buf);
+    resp->capacity = 8192;
+    resp->data = malloc(resp->capacity);
+    resp->seq = expected_seq;
+    if (!resp->data) {
+        free(resp);
         return NULL;
     }
     
-    struct timeval tv;
-    tv.tv_sec = 5;
-    tv.tv_usec = 0;
-    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-    
     int done = 0;
-    
     while (!done) {
-        unsigned char temp_buf[65536];
-        ssize_t len = recv(sock, temp_buf, sizeof(temp_buf), 0);
+        unsigned char buf[8192];
+        ssize_t len = recv(sock, buf, sizeof(buf), 0);
         
         if (len < 0) {
             if (errno == EINTR) continue;
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                if (buf->length > 0) break;
-                free(buf->data);
-                free(buf);
-                return NULL;
-            }
-            free(buf->data);
-            free(buf);
+            free(resp->data);
+            free(resp);
             return NULL;
         }
+        
         if (len == 0) break;
         
-        struct nlmsghdr* nlh = (struct nlmsghdr*)temp_buf;
-        size_t remaining = len;
-        
-        while (NLMSG_OK(nlh, remaining)) {
-            if (nlh->nlmsg_seq == expected_seq) {
-                if (nlh->nlmsg_type == NLMSG_DONE) {
-                    done = 1;
-                }
-                
-                size_t msg_len = NLMSG_ALIGN(nlh->nlmsg_len);
-                
-                while (buf->length + msg_len > buf->capacity) {
-                    buf->capacity *= 2;
-                    unsigned char* new_data = realloc(buf->data, buf->capacity);
-                    if (!new_data) {
-                        free(buf->data);
-                        free(buf);
-                        return NULL;
-                    }
-                    buf->data = new_data;
-                }
-                
-                memcpy(buf->data + buf->length, nlh, msg_len);
-                buf->length += msg_len;
-                
-                if (done) break;
+        // Expand buffer if needed
+        if (resp->length + len > resp->capacity) {
+            size_t new_capacity = resp->capacity * 2;
+            while (new_capacity < resp->length + len) {
+                new_capacity *= 2;
             }
-            
-            nlh = NLMSG_NEXT(nlh, remaining);
+            unsigned char* new_data = realloc(resp->data, new_capacity);
+            if (!new_data) {
+                free(resp->data);
+                free(resp);
+                return NULL;
+            }
+            resp->data = new_data;
+            resp->capacity = new_capacity;
+        }
+        
+        memcpy(resp->data + resp->length, buf, len);
+        resp->length += len;
+        
+        // Check for NLMSG_DONE
+        struct nlmsghdr* nlh = (struct nlmsghdr*)buf;
+        for (; NLMSG_OK(nlh, len); nlh = NLMSG_NEXT(nlh, len)) {
+            if (nlh->nlmsg_seq != expected_seq) continue;
+            if (nlh->nlmsg_type == NLMSG_DONE) {
+                done = 1;
+                break;
+            }
+            if (nlh->nlmsg_type == NLMSG_ERROR) {
+                free(resp->data);
+                free(resp);
+                return NULL;
+            }
         }
     }
     
-    return buf;
+    return resp;
 }
 
-void nl_free_response(response_buffer_t* buf) {
-    if (buf) {
-        if (buf->data) free(buf->data);
-        free(buf);
+void nl_free_response(response_buffer_t* resp) {
+    if (resp) {
+        if (resp->data) free(resp->data);
+        free(resp);
     }
 }
 
-// Track unknown attributes
-static void track_unknown_attr(unsigned short* unknown_list, int* count, int max_count,
-                               unsigned short attr_type, const unsigned short* known_attrs,
-                               int known_count) {
-    for (int i = 0; i < known_count; i++) {
-        if (known_attrs[i] == attr_type) {
-            return;
-        }
-    }
+// Parse neighbor entries from response
+neigh_entry_t* nl_parse_neighbors(response_buffer_t* resp, int* count_out, int capture_unknown) {
+    if (!resp || !count_out) return NULL;
     
-    for (int i = 0; i < *count; i++) {
-        if (unknown_list[i] == attr_type) {
-            return;
-        }
-    }
+    *count_out = 0;
     
-    if (*count < max_count) {
-        unknown_list[*count] = attr_type;
-        (*count)++;
-    }
-}
-
-// Parse neighbor entries
-int nl_parse_neighbors(response_buffer_t* buf, neigh_entry_t** neighbors, int* count) {
-    if (!buf || !neighbors || !count) return -1;
-    
-    *count = 0;
-    *neighbors = NULL;
-    
-    if (buf->length == 0) {
-        return -1;
-    }
-    
-    struct nlmsghdr* nlh = (struct nlmsghdr*)buf->data;
-    int max_count = 0;
-    size_t remaining = buf->length;
-    
-    // Count entries
-    for (; NLMSG_OK(nlh, remaining); nlh = NLMSG_NEXT(nlh, remaining)) {
-        if (nlh->nlmsg_type == NLMSG_DONE) break;
-        if (nlh->nlmsg_type == NLMSG_ERROR) {
-            return -1;
-        }
-        if (nlh->nlmsg_type == RTM_NEWNEIGH) {
-            max_count++;
-        }
-    }
-    
-    if (max_count == 0) return 0;
-    
-    *neighbors = calloc(max_count, sizeof(neigh_entry_t));
-    if (!*neighbors) {
-        return -1;
-    }
-    
-    nlh = (struct nlmsghdr*)buf->data;
-    remaining = buf->length;
-    
-    static const unsigned short known_nda_attrs[] = {
-        NDA_DST, NDA_LLADDR, NDA_CACHEINFO, NDA_PROBES, NDA_VLAN,
-        NDA_PORT, NDA_VNI, NDA_IFINDEX, NDA_MASTER, NDA_LINK_NETNSID,
-        NDA_SRC_VNI, NDA_PROTOCOL, NDA_NH_ID, NDA_FDB_EXT_ATTRS,
-        NDA_FLAGS_EXT, NDA_NDM_STATE_MASK, NDA_NDM_FLAGS_MASK
-    };
-    static const int known_nda_count = sizeof(known_nda_attrs) / sizeof(known_nda_attrs[0]);
+    // Count entries first
+    int count = 0;
+    struct nlmsghdr* nlh = (struct nlmsghdr*)resp->data;
+    size_t remaining = resp->length;
     
     for (; NLMSG_OK(nlh, remaining); nlh = NLMSG_NEXT(nlh, remaining)) {
-        if (nlh->nlmsg_type == NLMSG_DONE) break;
+        if (nlh->nlmsg_seq != resp->seq) continue;
+        if (nlh->nlmsg_type == NLMSG_DONE || nlh->nlmsg_type == NLMSG_ERROR) break;
+        if (nlh->nlmsg_type == RTM_NEWNEIGH) count++;
+    }
+    
+    if (count == 0) return NULL;
+    
+    // Allocate array
+    neigh_entry_t* entries = calloc(count, sizeof(neigh_entry_t));
+    if (!entries) return NULL;
+    
+    // Parse entries
+    int idx = 0;
+    nlh = (struct nlmsghdr*)resp->data;
+    remaining = resp->length;
+    
+    for (; NLMSG_OK(nlh, remaining); nlh = NLMSG_NEXT(nlh, remaining)) {
+        if (nlh->nlmsg_seq != resp->seq) continue;
+        if (nlh->nlmsg_type == NLMSG_DONE || nlh->nlmsg_type == NLMSG_ERROR) break;
         if (nlh->nlmsg_type != RTM_NEWNEIGH) continue;
         
         struct ndmsg* ndm = NLMSG_DATA(nlh);
-        neigh_entry_t* entry = &(*neighbors)[*count];
+        neigh_entry_t* entry = &entries[idx];
         
+        // Basic info from ndmsg
         entry->ifindex = ndm->ndm_ifindex;
         entry->family = ndm->ndm_family;
         entry->state = ndm->ndm_state;
         entry->flags = ndm->ndm_flags;
         entry->type = ndm->ndm_type;
-        entry->has_dst_addr = 0;
-        entry->has_lladdr = 0;
-        entry->lladdr_len = 0;
-        entry->has_probes = 0;
-        entry->has_vlan = 0;
-        entry->has_master = 0;
-        entry->unknown_nda_attrs_count = 0;
-        memset(&entry->cacheinfo, 0, sizeof(neigh_cacheinfo_t));
         
+        // Lookup interface name in C (NEW!)
+        if (if_indextoname(entry->ifindex, entry->ifname) == NULL) {
+            // If lookup fails, use fallback format
+            snprintf(entry->ifname, IFNAMSIZ, "if%d", entry->ifindex);
+        }
+        
+        // Parse attributes
         struct rtattr* rta = (struct rtattr*)((char*)ndm + NLMSG_ALIGN(sizeof(struct ndmsg)));
-        int rta_len = nlh->nlmsg_len - NLMSG_LENGTH(sizeof(struct ndmsg));
+        int rtalen = nlh->nlmsg_len - NLMSG_SPACE(sizeof(struct ndmsg));
         
-        for (; RTA_OK(rta, rta_len); rta = RTA_NEXT(rta, rta_len)) {
-            track_unknown_attr(entry->unknown_nda_attrs,
-                              &entry->unknown_nda_attrs_count,
-                              64, rta->rta_type, known_nda_attrs, known_nda_count);
-            
+        for (; RTA_OK(rta, rtalen); rta = RTA_NEXT(rta, rtalen)) {
             switch (rta->rta_type) {
                 case NDA_DST:
-                    if (RTA_PAYLOAD(rta) > 0 && RTA_PAYLOAD(rta) <= 16) {
-                        memcpy(entry->dst_addr, RTA_DATA(rta), RTA_PAYLOAD(rta));
-                        entry->has_dst_addr = 1;
-                    }
+                    entry->has_dst_addr = 1;
+                    memcpy(entry->dst_addr, RTA_DATA(rta), 
+                           (RTA_PAYLOAD(rta) < 16) ? RTA_PAYLOAD(rta) : 16);
                     break;
                     
                 case NDA_LLADDR:
-                    if (RTA_PAYLOAD(rta) > 0 && RTA_PAYLOAD(rta) <= 32) {
-                        memcpy(entry->lladdr, RTA_DATA(rta), RTA_PAYLOAD(rta));
-                        entry->lladdr_len = RTA_PAYLOAD(rta);
-                        entry->has_lladdr = 1;
-                    }
+                    entry->has_lladdr = 1;
+                    entry->lladdr_len = RTA_PAYLOAD(rta);
+                    if (entry->lladdr_len > 32) entry->lladdr_len = 32;
+                    memcpy(entry->lladdr, RTA_DATA(rta), entry->lladdr_len);
                     break;
                     
                 case NDA_CACHEINFO: {
-                    if (RTA_PAYLOAD(rta) >= 16) {
-                        unsigned int* cache = (unsigned int*)RTA_DATA(rta);
-                        // struct nda_cacheinfo has: confirmed, used, updated, refcnt
-                        entry->cacheinfo.cacheinfo_confirmed = cache[0];
-                        entry->cacheinfo.cacheinfo_used = cache[1];
-                        entry->cacheinfo.cacheinfo_updated = cache[2];
-                        entry->cacheinfo.cacheinfo_refcnt = cache[3];
-                        entry->cacheinfo.has_cacheinfo_confirmed = 1;
-                        entry->cacheinfo.has_cacheinfo_used = 1;
-                        entry->cacheinfo.has_cacheinfo_updated = 1;
-                        entry->cacheinfo.has_cacheinfo_refcnt = 1;
-                    }
+                    struct nda_cacheinfo* ci = RTA_DATA(rta);
+                    entry->cacheinfo.cacheinfo_confirmed = ci->ndm_confirmed;
+                    entry->cacheinfo.cacheinfo_used = ci->ndm_used;
+                    entry->cacheinfo.cacheinfo_updated = ci->ndm_updated;
+                    entry->cacheinfo.cacheinfo_refcnt = ci->ndm_refcnt;
+                    entry->cacheinfo.has_cacheinfo_confirmed = 1;
+                    entry->cacheinfo.has_cacheinfo_used = 1;
+                    entry->cacheinfo.has_cacheinfo_updated = 1;
+                    entry->cacheinfo.has_cacheinfo_refcnt = 1;
                     break;
                 }
                     
                 case NDA_PROBES:
-                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned int)) {
-                        entry->probes = *(unsigned int*)RTA_DATA(rta);
-                        entry->has_probes = 1;
-                    }
+                    entry->has_probes = 1;
+                    entry->probes = *(unsigned int*)RTA_DATA(rta);
                     break;
                     
                 case NDA_VLAN:
-                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned short)) {
-                        entry->vlan = *(unsigned short*)RTA_DATA(rta);
-                        entry->has_vlan = 1;
-                    }
+                    entry->has_vlan = 1;
+                    entry->vlan = *(unsigned short*)RTA_DATA(rta);
                     break;
                     
                 case NDA_MASTER:
-                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned int)) {
-                        entry->master = *(unsigned int*)RTA_DATA(rta);
-                        entry->has_master = 1;
+                    entry->has_master = 1;
+                    entry->master = *(unsigned int*)RTA_DATA(rta);
+                    break;
+                    
+                default:
+                    // Unknown attribute
+                    if (capture_unknown && 
+                        entry->unknown_nda_attrs_count < 64) {
+                        entry->unknown_nda_attrs[entry->unknown_nda_attrs_count++] = 
+                            rta->rta_type;
                     }
                     break;
             }
         }
         
-        (*count)++;
+        idx++;
     }
     
-    return 0;
+    *count_out = idx;
+    return entries;
 }
 
-void nl_free_neighbors(neigh_entry_t* neighbors) {
-    if (neighbors) free(neighbors);
+void nl_free_neighbors(neigh_entry_t* entries) {
+    if (entries) free(entries);
 }
 
-// Helper functions to get string representations
-int nl_get_af_inet(void) { return AF_INET; }
-int nl_get_af_inet6(void) { return AF_INET6; }
-int nl_get_af_bridge(void) { return AF_BRIDGE; }
-
-const char* nl_get_neigh_state_name(unsigned char state) {
-    // Can have multiple states set
-    // Note: NUD_NOARP indicates entry doesn't use neighbor resolution (ARP/NDP)
-    // For IPv6: NOARP can appear for loopback, static entries, or point-to-point links,
-    // but most IPv6 entries use NDP and will be REACHABLE/STALE/DELAY/PROBE
-    static char buf[256];
-    buf[0] = '\0';
-    int first = 1;
-    
-    if (state == NUD_NONE) {
-        return "NONE";
-    }
-    
-    if (state & NUD_INCOMPLETE) {
-        if (!first) strcat(buf, "|");
-        strcat(buf, "INCOMPLETE");
-        first = 0;
-    }
-    if (state & NUD_REACHABLE) {
-        if (!first) strcat(buf, "|");
-        strcat(buf, "REACHABLE");
-        first = 0;
-    }
-    if (state & NUD_STALE) {
-        if (!first) strcat(buf, "|");
-        strcat(buf, "STALE");
-        first = 0;
-    }
-    if (state & NUD_DELAY) {
-        if (!first) strcat(buf, "|");
-        strcat(buf, "DELAY");
-        first = 0;
-    }
-    if (state & NUD_PROBE) {
-        if (!first) strcat(buf, "|");
-        strcat(buf, "PROBE");
-        first = 0;
-    }
-    if (state & NUD_FAILED) {
-        if (!first) strcat(buf, "|");
-        strcat(buf, "FAILED");
-        first = 0;
-    }
-    if (state & NUD_NOARP) {
-        if (!first) strcat(buf, "|");
-        strcat(buf, "NOARP");
-        first = 0;
-    }
-    if (state & NUD_PERMANENT) {
-        if (!first) strcat(buf, "|");
-        strcat(buf, "PERMANENT");
-        first = 0;
-    }
-    
-    return buf[0] ? buf : "UNKNOWN";
-}
-
-const char* nl_get_neigh_flag_name(unsigned char flags, int index) {
-    static const char* flag_names[] = {
-        "USE", "SELF", "MASTER", "PROXY", "EXT_LEARNED", "OFFLOADED", "STICKY", "ROUTER"
-    };
-    static const unsigned char flag_values[] = {
-        NTF_USE, NTF_SELF, NTF_MASTER, NTF_PROXY, NTF_EXT_LEARNED, NTF_OFFLOADED, NTF_STICKY, NTF_ROUTER
-    };
+// Get neighbor count from response
+int nl_get_neighbor_count(response_buffer_t* resp) {
+    if (!resp) return 0;
     
     int count = 0;
-    for (int i = 0; i < 8; i++) {
-        if (flags & flag_values[i]) {
-            if (count == index) return flag_names[i];
-            count++;
-        }
+    struct nlmsghdr* nlh = (struct nlmsghdr*)resp->data;
+    size_t remaining = resp->length;
+    
+    for (; NLMSG_OK(nlh, remaining); nlh = NLMSG_NEXT(nlh, remaining)) {
+        if (nlh->nlmsg_seq != resp->seq) continue;
+        if (nlh->nlmsg_type == NLMSG_DONE || nlh->nlmsg_type == NLMSG_ERROR) break;
+        if (nlh->nlmsg_type == RTM_NEWNEIGH) count++;
     }
-    return NULL;
+    
+    return count;
 }
+"""
 
-const char* nl_get_hw_type_name(unsigned short type) {
-    switch (type) {
-        case 0: return "NETROM";
-        case 1: return "ETHER";
-        case 6: return "IEEE802";
-        case 8: return "ARCNET";
-        case 15: return "DLCI";
-        case 19: return "ATM";
-        case 23: return "METRICOM";
-        case 24: return "IEEE1394";
-        case 27: return "EUI64";
-        case 32: return "INFINIBAND";
-        case 256: return "SLIP";
-        case 257: return "CSLIP";
-        case 258: return "SLIP6";
-        case 259: return "CSLIP6";
-        case 260: return "RSRVD";
-        case 264: return "ADAPT";
-        case 270: return "ROSE";
-        case 271: return "X25";
-        case 272: return "HWX25";
-        case 280: return "CAN";
-        case 512: return "PPP";
-        case 513: return "CISCO";
-        case 516: return "LAPB";
-        case 517: return "DDCMP";
-        case 518: return "RAWHDLC";
-        case 519: return "RAWIP";
-        case 768: return "TUNNEL";
-        case 769: return "TUNNEL6";
-        case 770: return "FRAD";
-        case 771: return "SKIP";
-        case 772: return "LOOPBACK";
-        case 773: return "LOCALTLK";
-        case 774: return "FDDI";
-        case 775: return "BIF";
-        case 776: return "SIT";
-        case 777: return "IPDDP";
-        case 778: return "IPGRE";
-        case 779: return "PIMREG";
-        case 780: return "HIPPI";
-        case 781: return "ASH";
-        case 782: return "ECONET";
-        case 783: return "IRDA";
-        case 784: return "FCPP";
-        case 785: return "FCAL";
-        case 786: return "FCPL";
-        case 787: return "FCFABRIC";
-        case 800: return "IEEE802_TR";
-        case 801: return "IEEE80211";
-        case 802: return "IEEE80211_PRISM";
-        case 803: return "IEEE80211_RADIOTAP";
-        case 804: return "IEEE802154";
-        case 805: return "IEEE802154_MONITOR";
-        case 820: return "PHONET";
-        case 821: return "PHONET_PIPE";
-        case 822: return "CAIF";
-        case 823: return "IP6GRE";
-        case 824: return "NETLINK";
-        case 825: return "6LOWPAN";
-        case 826: return "VSOCKMON";
-        case 0xFFFE: return "NONE";
-        case 0xFFFF: return "VOID";
-        default: return NULL;
-    }
-}
-""";  # END OF C_SOURCE
-
-# CFFI definitions
+# FFI C definitions
 ffi = FFI()
 ffi.cdef("""
+    // Socket operations
+    int nl_create_socket(void);
+    void nl_close_socket(int sock);
+    
+    // Request/Response
+    int nl_send_getneigh(int sock, unsigned int* seq_out, int family);
+    
     typedef struct {
         unsigned char* data;
         size_t length;
         size_t capacity;
         unsigned int seq;
     } response_buffer_t;
-
+    
+    response_buffer_t* nl_recv_response(int sock, unsigned int expected_seq);
+    void nl_free_response(response_buffer_t* resp);
+    int nl_get_neighbor_count(response_buffer_t* resp);
+    
+    // Neighbor cache info
     typedef struct {
         unsigned char cacheinfo_confirmed;
         unsigned char cacheinfo_used;
@@ -647,9 +483,11 @@ ffi.cdef("""
         int has_cacheinfo_updated;
         int has_cacheinfo_refcnt;
     } neigh_cacheinfo_t;
-
+    
+    // Neighbor entry (with ifname!)
     typedef struct {
         int ifindex;
+        char ifname[16];
         unsigned char family;
         unsigned char state;
         unsigned char flags;
@@ -669,177 +507,360 @@ ffi.cdef("""
         unsigned short unknown_nda_attrs[64];
         int unknown_nda_attrs_count;
     } neigh_entry_t;
-
-    int nl_create_socket(void);
-    void nl_close_socket(int sock);
-    int nl_send_getneigh(int sock, unsigned int* seq_out, int family);
-    response_buffer_t* nl_recv_response(int sock, unsigned int expected_seq);
-    void nl_free_response(response_buffer_t* buf);
-    int nl_parse_neighbors(response_buffer_t* buf, neigh_entry_t** neighbors, int* count);
-    void nl_free_neighbors(neigh_entry_t* neighbors);
-    int nl_get_af_inet(void);
-    int nl_get_af_inet6(void);
-    int nl_get_af_bridge(void);
-    const char* nl_get_neigh_state_name(unsigned char state);
-    const char* nl_get_neigh_flag_name(unsigned char flags, int index);
-    const char* nl_get_hw_type_name(unsigned short type);
+    
+    neigh_entry_t* nl_parse_neighbors(response_buffer_t* resp, int* count_out, int capture_unknown);
+    void nl_free_neighbors(neigh_entry_t* entries);
 """)
 
-# Compile the C library
-try:
-    lib = ffi.verify(C_SOURCE, libraries=[])
-except Exception as e:
-    if sys.version_info >= (3, 12) and "setuptools" in str(e).lower():
-        raise RuntimeError(
-            "Failed to compile C extension. Python 3.12+ requires setuptools.\n"
-            "Install it with: pip install setuptools"
-        ) from e
-    raise
+# Compile C library
+lib = ffi.verify(C_SOURCE, extra_compile_args=['-std=c99'])
 
-AF_INET = lib.nl_get_af_inet()
-AF_INET6 = lib.nl_get_af_inet6()
-AF_BRIDGE = lib.nl_get_af_bridge()
 
-# NDA_* Attribute Name Mapping
-NDA_ATTR_NAMES = {
-    0: 'NDA_UNSPEC', 1: 'NDA_DST', 2: 'NDA_LLADDR', 3: 'NDA_CACHEINFO',
-    4: 'NDA_PROBES', 5: 'NDA_VLAN', 6: 'NDA_PORT', 7: 'NDA_VNI',
-    8: 'NDA_IFINDEX', 9: 'NDA_MASTER', 10: 'NDA_LINK_NETNSID', 11: 'NDA_SRC_VNI',
-    12: 'NDA_PROTOCOL', 13: 'NDA_NH_ID', 14: 'NDA_FDB_EXT_ATTRS', 15: 'NDA_FLAGS_EXT',
-    16: 'NDA_NDM_STATE_MASK', 17: 'NDA_NDM_FLAGS_MASK',
+# Constants
+AF_INET = 2
+AF_INET6 = 10
+AF_BRIDGE = 7
+AF_UNSPEC = 0
+
+# Neighbor states
+NUD_INCOMPLETE = 0x01
+NUD_REACHABLE = 0x02
+NUD_STALE = 0x04
+NUD_DELAY = 0x08
+NUD_PROBE = 0x10
+NUD_FAILED = 0x20
+NUD_NOARP = 0x40
+NUD_PERMANENT = 0x80
+NUD_NONE = 0x00
+
+# Neighbor flags
+NTF_USE = 0x01
+NTF_SELF = 0x02
+NTF_MASTER = 0x04
+NTF_PROXY = 0x08
+NTF_EXT_LEARNED = 0x10
+NTF_OFFLOADED = 0x20
+NTF_STICKY = 0x40
+NTF_ROUTER = 0x80
+
+# Hardware types
+ARPHRD_NETROM = 0
+ARPHRD_ETHER = 1
+ARPHRD_EETHER = 2
+ARPHRD_AX25 = 3
+ARPHRD_PRONET = 4
+ARPHRD_CHAOS = 5
+ARPHRD_IEEE802 = 6
+ARPHRD_ARCNET = 7
+ARPHRD_APPLETLK = 8
+ARPHRD_DLCI = 15
+ARPHRD_ATM = 19
+ARPHRD_METRICOM = 23
+ARPHRD_IEEE1394 = 24
+ARPHRD_EUI64 = 27
+ARPHRD_INFINIBAND = 32
+ARPHRD_SLIP = 256
+ARPHRD_CSLIP = 257
+ARPHRD_SLIP6 = 258
+ARPHRD_CSLIP6 = 259
+ARPHRD_RSRVD = 260
+ARPHRD_ADAPT = 264
+ARPHRD_ROSE = 270
+ARPHRD_X25 = 271
+ARPHRD_HWX25 = 272
+ARPHRD_CAN = 280
+ARPHRD_PPP = 512
+ARPHRD_CISCO = 513
+ARPHRD_HDLC = 513
+ARPHRD_LAPB = 516
+ARPHRD_DDCMP = 517
+ARPHRD_RAWHDLC = 518
+ARPHRD_TUNNEL = 768
+ARPHRD_TUNNEL6 = 769
+ARPHRD_FRAD = 770
+ARPHRD_SKIP = 771
+ARPHRD_LOOPBACK = 772
+ARPHRD_LOCALTLK = 773
+ARPHRD_FDDI = 774
+ARPHRD_BIF = 775
+ARPHRD_SIT = 776
+ARPHRD_IPDDP = 777
+ARPHRD_IPGRE = 778
+ARPHRD_PIMREG = 779
+ARPHRD_HIPPI = 780
+ARPHRD_ASH = 781
+ARPHRD_ECONET = 782
+ARPHRD_IRDA = 783
+ARPHRD_FCPP = 784
+ARPHRD_FCAL = 785
+ARPHRD_FCPL = 786
+ARPHRD_FCFABRIC = 787
+ARPHRD_IEEE802_TR = 800
+ARPHRD_IEEE80211 = 801
+ARPHRD_IEEE80211_PRISM = 802
+ARPHRD_IEEE80211_RADIOTAP = 803
+ARPHRD_IEEE802154 = 804
+ARPHRD_IEEE802154_MONITOR = 805
+ARPHRD_PHONET = 820
+ARPHRD_PHONET_PIPE = 821
+ARPHRD_CAIF = 822
+ARPHRD_IP6GRE = 823
+ARPHRD_NETLINK = 824
+ARPHRD_6LOWPAN = 825
+ARPHRD_VSOCKMON = 826
+ARPHRD_VOID = 0xFFFF
+ARPHRD_NONE = 0xFFFE
+
+HW_TYPES = {
+    ARPHRD_NETROM: 'NETROM',
+    ARPHRD_ETHER: 'ETHER',
+    ARPHRD_EETHER: 'EETHER',
+    ARPHRD_AX25: 'AX25',
+    ARPHRD_PRONET: 'PRONET',
+    ARPHRD_CHAOS: 'CHAOS',
+    ARPHRD_IEEE802: 'IEEE802',
+    ARPHRD_ARCNET: 'ARCNET',
+    ARPHRD_APPLETLK: 'APPLETLK',
+    ARPHRD_DLCI: 'DLCI',
+    ARPHRD_ATM: 'ATM',
+    ARPHRD_METRICOM: 'METRICOM',
+    ARPHRD_IEEE1394: 'IEEE1394',
+    ARPHRD_EUI64: 'EUI64',
+    ARPHRD_INFINIBAND: 'INFINIBAND',
+    ARPHRD_SLIP: 'SLIP',
+    ARPHRD_CSLIP: 'CSLIP',
+    ARPHRD_SLIP6: 'SLIP6',
+    ARPHRD_CSLIP6: 'CSLIP6',
+    ARPHRD_RSRVD: 'RSRVD',
+    ARPHRD_ADAPT: 'ADAPT',
+    ARPHRD_ROSE: 'ROSE',
+    ARPHRD_X25: 'X25',
+    ARPHRD_HWX25: 'HWX25',
+    ARPHRD_CAN: 'CAN',
+    ARPHRD_PPP: 'PPP',
+    ARPHRD_HDLC: 'HDLC',
+    ARPHRD_LAPB: 'LAPB',
+    ARPHRD_DDCMP: 'DDCMP',
+    ARPHRD_RAWHDLC: 'RAWHDLC',
+    ARPHRD_TUNNEL: 'TUNNEL',
+    ARPHRD_TUNNEL6: 'TUNNEL6',
+    ARPHRD_FRAD: 'FRAD',
+    ARPHRD_SKIP: 'SKIP',
+    ARPHRD_LOOPBACK: 'LOOPBACK',
+    ARPHRD_LOCALTLK: 'LOCALTLK',
+    ARPHRD_FDDI: 'FDDI',
+    ARPHRD_BIF: 'BIF',
+    ARPHRD_SIT: 'SIT',
+    ARPHRD_IPDDP: 'IPDDP',
+    ARPHRD_IPGRE: 'IPGRE',
+    ARPHRD_PIMREG: 'PIMREG',
+    ARPHRD_HIPPI: 'HIPPI',
+    ARPHRD_ASH: 'ASH',
+    ARPHRD_ECONET: 'ECONET',
+    ARPHRD_IRDA: 'IRDA',
+    ARPHRD_FCPP: 'FCPP',
+    ARPHRD_FCAL: 'FCAL',
+    ARPHRD_FCPL: 'FCPL',
+    ARPHRD_FCFABRIC: 'FCFABRIC',
+    ARPHRD_IEEE802_TR: 'IEEE802_TR',
+    ARPHRD_IEEE80211: 'IEEE80211',
+    ARPHRD_IEEE80211_PRISM: 'IEEE80211_PRISM',
+    ARPHRD_IEEE80211_RADIOTAP: 'IEEE80211_RADIOTAP',
+    ARPHRD_IEEE802154: 'IEEE802154',
+    ARPHRD_IEEE802154_MONITOR: 'IEEE802154_MONITOR',
+    ARPHRD_PHONET: 'PHONET',
+    ARPHRD_PHONET_PIPE: 'PHONET_PIPE',
+    ARPHRD_CAIF: 'CAIF',
+    ARPHRD_IP6GRE: 'IP6GRE',
+    ARPHRD_NETLINK: 'NETLINK',
+    ARPHRD_6LOWPAN: '6LOWPAN',
+    ARPHRD_VSOCKMON: 'VSOCKMON',
+    ARPHRD_VOID: 'VOID',
+    ARPHRD_NONE: 'NONE',
 }
 
 
-def decode_unknown_attrs(attr_list: List[int]) -> List[Dict[str, Any]]:
-    """Decode unknown attribute numbers into human-readable information"""
-    decoded = []
-    for attr_num in attr_list:
-        is_nested = bool(attr_num & 0x8000)
-        base_num = attr_num & 0x7FFF
-        
-        info = {
-            'number': attr_num,
-            'base_number': base_num,
-            'nested': is_nested,
-        }
-        
-        if base_num in NDA_ATTR_NAMES:
-            info['name'] = NDA_ATTR_NAMES[base_num]
-            if is_nested:
-                info['name'] += ' (nested)'
+def decode_state(state: int) -> str:
+    """Decode neighbor state flags to string"""
+    states = []
+    if state & NUD_INCOMPLETE:
+        states.append('INCOMPLETE')
+    if state & NUD_REACHABLE:
+        states.append('REACHABLE')
+    if state & NUD_STALE:
+        states.append('STALE')
+    if state & NUD_DELAY:
+        states.append('DELAY')
+    if state & NUD_PROBE:
+        states.append('PROBE')
+    if state & NUD_FAILED:
+        states.append('FAILED')
+    if state & NUD_NOARP:
+        states.append('NOARP')
+    if state & NUD_PERMANENT:
+        states.append('PERMANENT')
+    if state == NUD_NONE:
+        states.append('NONE')
+    
+    return '|'.join(states) if states else 'UNKNOWN'
+
+
+def decode_flags(flags: int) -> List[str]:
+    """Decode neighbor flags to list of strings"""
+    flag_list = []
+    if flags & NTF_USE:
+        flag_list.append('USE')
+    if flags & NTF_SELF:
+        flag_list.append('SELF')
+    if flags & NTF_MASTER:
+        flag_list.append('MASTER')
+    if flags & NTF_PROXY:
+        flag_list.append('PROXY')
+    if flags & NTF_EXT_LEARNED:
+        flag_list.append('EXT_LEARNED')
+    if flags & NTF_OFFLOADED:
+        flag_list.append('OFFLOADED')
+    if flags & NTF_STICKY:
+        flag_list.append('STICKY')
+    if flags & NTF_ROUTER:
+        flag_list.append('ROUTER')
+    
+    return flag_list
+
+
+def decode_unknown_attrs(unknown_list: List[int]) -> Dict[str, Any]:
+    """Decode unknown NDA attributes"""
+    nda_names = {
+        1: 'NDA_DST',
+        2: 'NDA_LLADDR',
+        3: 'NDA_CACHEINFO',
+        4: 'NDA_PROBES',
+        5: 'NDA_VLAN',
+        6: 'NDA_PORT',
+        7: 'NDA_VNI',
+        8: 'NDA_IFINDEX',
+        9: 'NDA_MASTER',
+        10: 'NDA_LINK_NETNSID',
+        11: 'NDA_SRC_VNI',
+        12: 'NDA_PROTOCOL',
+        13: 'NDA_NH_ID',
+        14: 'NDA_FDB_EXT_ATTRS',
+        15: 'NDA_FLAGS_EXT',
+        16: 'NDA_NDM_STATE_MASK',
+        17: 'NDA_NDM_FLAGS_MASK',
+    }
+    
+    decoded = {}
+    for attr_type in unknown_list:
+        name = nda_names.get(attr_type, f'UNKNOWN_{attr_type}')
+        if name in decoded:
+            decoded[name] += 1
         else:
-            info['name'] = f'NDA_{base_num}'
-        
-        decoded.append(info)
+            decoded[name] = 1
     
     return decoded
 
 
 class NeighborTableQuery:
-    """
-    Query neighbor table information using RTNETLINK protocol via C library.
-    Supports ARP (IPv4), NDP (IPv6), and bridge FDB entries.
-    """
+    """Query neighbor table via RTNetlink"""
     
     def __init__(self, capture_unknown_attrs: bool = True):
-        self.sock = -1
+        """
+        Initialize neighbor table query.
+        
+        Args:
+            capture_unknown_attrs: Whether to capture unknown NDA attributes
+        """
+        self.sock = None
         self.capture_unknown_attrs = capture_unknown_attrs
     
     def __enter__(self):
-        """Context manager entry - create socket"""
+        """Context manager entry"""
         self.sock = lib.nl_create_socket()
         if self.sock < 0:
             raise RuntimeError("Failed to create netlink socket")
         return self
     
-    def __exit__(self, exc_type, exc_val, exc_tb): #@UnusedVariable
-        """Context manager exit - close socket"""
-        if self.sock >= 0:
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit"""
+        if self.sock is not None:
             lib.nl_close_socket(self.sock)
-            self.sock = -1
-        return False
+            self.sock = None
     
     def get_neighbors(self, family: Optional[str] = None) -> List[Dict[str, Any]]:
         """
-        Query neighbor table entries.
+        Get neighbor table entries.
         
         Args:
-            family: Optional filter - 'ipv4', 'ipv6', 'bridge', or None for all
+            family: Filter by family ('ipv4', 'ipv6', 'bridge', or None for all)
         
         Returns:
-            List of neighbor entries with full metadata
+            List of neighbor entry dictionaries
         """
-        # Map family string to AF constant
-        family_map = {
-            'ipv4': AF_INET,
-            'ipv6': AF_INET6,
-            'bridge': AF_BRIDGE,
-            None: 0,  # AF_UNSPEC
-        }
+        if self.sock is None:
+            raise RuntimeError("Socket not initialized - use context manager")
         
-        if family not in family_map:
-            raise ValueError(f"Invalid family: {family}. Must be 'ipv4', 'ipv6', 'bridge', or None")
+        # Determine netlink family
+        nl_family = AF_UNSPEC
+        if family == 'ipv4':
+            nl_family = AF_INET
+        elif family == 'ipv6':
+            nl_family = AF_INET6
+        elif family == 'bridge':
+            nl_family = AF_BRIDGE
         
-        af_family = family_map[family]
-        
-        seq_ptr = ffi.new("unsigned int*")
-        
-        if lib.nl_send_getneigh(self.sock, seq_ptr, af_family) < 0:
+        # Send request
+        seq = ffi.new("unsigned int*")
+        if lib.nl_send_getneigh(self.sock, seq, nl_family) < 0:
             raise RuntimeError("Failed to send RTM_GETNEIGH request")
         
-        seq = seq_ptr[0]
-        response = lib.nl_recv_response(self.sock, seq)
-        if not response:
-            raise RuntimeError("Failed to receive response for RTM_GETNEIGH")
+        # Receive response
+        response = lib.nl_recv_response(self.sock, seq[0])
+        if response == ffi.NULL:
+            raise RuntimeError("Failed to receive netlink response")
         
         try:
-            neighbors_ptr = ffi.new("neigh_entry_t**")
-            count_ptr = ffi.new("int*")
+            # Get neighbor count
+            count = lib.nl_get_neighbor_count(response)
+            if count == 0:
+                return []
             
-            result = lib.nl_parse_neighbors(response, neighbors_ptr, count_ptr)
-            if result < 0:
-                raise RuntimeError("Failed to parse neighbor messages")
+            # Parse neighbors
+            count_out = ffi.new("int*")
+            neighbors_array = lib.nl_parse_neighbors(
+                response, 
+                count_out, 
+                1 if self.capture_unknown_attrs else 0
+            )
             
+            if neighbors_array == ffi.NULL:
+                return []
+            
+            # Convert to Python list
             neighbors = []
-            count = count_ptr[0]
-            neighbors_array = neighbors_ptr[0]
-            
-            for i in range(count):
+            for i in range(count_out[0]):
                 entry = neighbors_array[i]
                 
-                # Determine family name
-                if entry.family == AF_INET:
-                    family_name = 'ipv4'
-                elif entry.family == AF_INET6:
-                    family_name = 'ipv6'
-                elif entry.family == AF_BRIDGE:
-                    family_name = 'bridge'
-                else:
-                    family_name = f'af_{entry.family}'
+                # Decode family
+                family_name = {
+                    AF_INET: 'ipv4',
+                    AF_INET6: 'ipv6',
+                    AF_BRIDGE: 'bridge',
+                }.get(entry.family, f'family_{entry.family}')
                 
-                # Get state name
-                state_name_ptr = lib.nl_get_neigh_state_name(entry.state)
-                state_name = ffi.string(state_name_ptr).decode('utf-8')
+                # Decode state
+                state_name = decode_state(entry.state)
                 
-                # Get flag names
-                flag_names = []
-                idx = 0
-                while True:
-                    flag_name = lib.nl_get_neigh_flag_name(entry.flags, idx)
-                    if not flag_name:
-                        break
-                    flag_names.append(ffi.string(flag_name).decode('utf-8'))
-                    idx += 1
+                # Decode flags
+                flag_names = decode_flags(entry.flags)
                 
-                # Get hardware type name
-                hw_type_ptr = lib.nl_get_hw_type_name(entry.type)
-                if hw_type_ptr:
-                    hw_type_name = ffi.string(hw_type_ptr).decode('utf-8')
-                else:
-                    hw_type_name = f'type_{entry.type}'
+                # Decode hardware type
+                hw_type_name = HW_TYPES.get(entry.type, f'TYPE_{entry.type}')
                 
+                # Build neighbor info dict
                 neigh_info = {
                     'ifindex': entry.ifindex,
+                    'ifname': ffi.string(entry.ifname).decode('utf-8'),  # ALWAYS INCLUDED!
                     'family': family_name,
                     'state': entry.state,
                     'state_name': state_name,
@@ -940,115 +961,121 @@ class NeighborTableQuery:
 
 # Example usage
 def main():
-        """Main entry point for the command."""
-        import argparse
+    """Main entry point for the command."""
+    import argparse
     
-        parser = argparse.ArgumentParser(description='Neighbor Table Query Tool (ARP/NDP/FDB)')
-        parser.add_argument('--no-unknown-attrs', action='store_true',
-                            help='Disable unknown attribute tracking')
-        parser.add_argument('--summary', action='store_true',
-                            help='Show human-readable summary')
-        parser.add_argument('--arp', action='store_true',
-                            help='Show only IPv4 ARP entries')
-        parser.add_argument('--ndp', action='store_true',
-                            help='Show only IPv6 NDP entries')
-        parser.add_argument('--bridge', action='store_true',
-                            help='Show only bridge FDB entries')
-        parser.add_argument('--interface', type=str,
-                            help='Filter by interface name')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Neighbor Table Query Tool (ARP/NDP/FDB)')
+    parser.add_argument('--no-unknown-attrs', action='store_true',
+                        help='Disable unknown attribute tracking')
+    parser.add_argument('--summary', '-v', '--verbose', action='store_true',
+                        help='Show human-readable summary')
+    parser.add_argument('--arp', action='store_true',
+                        help='Show only IPv4 ARP entries')
+    parser.add_argument('--ndp', action='store_true',
+                        help='Show only IPv6 NDP entries')
+    parser.add_argument('--bridge', action='store_true',
+                        help='Show only bridge FDB entries')
+    parser.add_argument('-d', '--device', '--interface', 
+                        type=str,
+                        dest='device',
+                        metavar='DEVICE',
+                        help='Filter by device/interface name (e.g., eth0, wlan0)')
+    parser.add_argument('-j', '--json', action='store_true', 
+                        help='Output in pure JSON format (default)')
+    parser.add_argument('-t', '--text', action='store_true', 
+                        help='Output in text format')
     
-        try:
-            print("=" * 70)
-            print("RTNetlink Neighbor Table Query (ARP/NDP/FDB)")
-            print("=" * 70)
+    args = parser.parse_args()
+    if args.json and args.summary:
+        parser.error('Only --summary is not allowed with -j or --json')
+    
+    try:
+        if (not args.json) and (len(sys.argv) != 1):
+            print('=' * 70)
+            print('RTNetlink Neighbor Table Query (ARP/NDP/FDB)')
+            print('=' * 70)
             print(f"Unknown attribute tracking: {'DISABLED' if args.no_unknown_attrs else 'ENABLED'}")
+            if args.device:
+                print(f"Filtering by device: {args.device}")
             print()
-
-            # Determine family filter
-            family = None
-            if args.arp:
-                family = 'ipv4'
-            elif args.ndp:
-                family = 'ipv6'
-            elif args.bridge:
-                family = 'bridge'
         
-            with NeighborTableQuery(capture_unknown_attrs=not args.no_unknown_attrs) as ntq:
-                neighbors = ntq.get_neighbors(family=family)
+        # Determine family filter
+        family = None
+        if args.arp:
+            family = 'ipv4'
+        elif args.ndp:
+            family = 'ipv6'
+        elif args.bridge:
+            family = 'bridge'
         
-            # Filter by interface if requested
-            if args.interface:
-                # Need to resolve interface name to index
-                import socket
-                try:
-                    if_index = socket.if_nametoindex(args.interface)
-                    neighbors = [n for n in neighbors if n['ifindex'] == if_index]
-                except OSError:
-                    print(f"Warning: Interface '{args.interface}' not found", file=sys.stderr)
-                    neighbors = []
+        with NeighborTableQuery(capture_unknown_attrs=not args.no_unknown_attrs) as ntq:
+            neighbors = ntq.get_neighbors(family=family)
         
-            if args.summary:
-                # Human-readable summary
-                print(f"\nFound {len(neighbors)} neighbor entries:")
-                print("=" * 70)
+        # Filter by device/interface if requested
+        if args.device:
+            # Filter by interface name (now available in JSON!)
+            neighbors = [n for n in neighbors if n['ifname'] == args.device]
+        
+        if args.summary:
+            # Human-readable summary
+            print(f'\nFound {len(neighbors)} neighbor entries:')
+            print('=' * 70)
             
-                # Group by family
-                by_family = {}
-                for entry in neighbors:
-                    fam = entry['family']
-                    if fam not in by_family:
-                        by_family[fam] = []
-                    by_family[fam].append(entry)
+            # Group by family
+            by_family = {}
+            for entry in neighbors:
+                fam = entry['family']
+                if fam not in by_family:
+                    by_family[fam] = []
+                by_family[fam].append(entry)
             
-                for fam in sorted(by_family.keys()):
-                    entries = by_family[fam]
-                    print(f"\n{fam.upper()} Entries ({len(entries)}):")
-                    print("-" * 70)
+            for fam in sorted(by_family.keys()):
+                entries = by_family[fam]
+                print(f'\n{fam.upper()} Entries ({len(entries)}):')
+                print('-' * 70)
                 
-                    for entry in entries:
-                        # Resolve interface name
-                        try:
-                            #import socket
-                            if_name = socket.if_indextoname(entry['ifindex'])
-                        except OSError:
-                            if_name = f"if{entry['ifindex']}"
+                for entry in entries:
+                    # Interface name is now in the entry!
+                    if_name = entry['ifname']
                     
-                        dst = entry.get('dst', 'N/A')
-                        lladdr = entry.get('lladdr', 'N/A')
-                        state = entry['state_name']
-                        hw_type = entry.get('type_name', 'unknown')
+                    dst = entry.get('dst', 'N/A')
+                    lladdr = entry.get('lladdr', 'N/A')
+                    state = entry['state_name']
+                    hw_type = entry.get('type_name', 'unknown')
                     
-                        print(f"  {dst:40s} -> {lladdr:17s}  [{state:20s}] on {if_name}")
-                        print(f"    Type: {hw_type}")
+                    print(f'  {dst:40s} -> {lladdr:17s}  [{state:20s}] on {if_name}')
+                    print(f'    Type: {hw_type}')
                     
-                        # Show flags if present
-                        if entry['flag_names']:
-                            print(f"    Flags: {', '.join(entry['flag_names'])}")
+                    # Show flags if present
+                    if entry['flag_names']:
+                        print(f"    Flags: {', '.join(entry['flag_names'])}")
                     
-                        # Show VLAN if present
-                        if 'vlan' in entry:
-                            print(f"    VLAN: {entry['vlan']}")
+                    # Show VLAN if present
+                    if 'vlan' in entry:
+                        print(f"    VLAN: {entry['vlan']}")
                     
-                        # Show cache info if interesting
-                        if 'cacheinfo' in entry:
-                            cache = entry['cacheinfo']
-                            if 'used' in cache and cache['used'] < 60:
-                                print(f"    Last used: {cache['used']}s ago")
-            else:
-                # Full JSON output
-                print(json.dumps(neighbors, indent=2))
+                    # Show cache info if interesting
+                    if 'cacheinfo' in entry:
+                        cache = entry['cacheinfo']
+                        if 'used' in cache and cache['used'] < 60:
+                            print(f"    Last used: {cache['used']}s ago")
+        else:
+            # Full JSON output (ifname is ALWAYS included!)
+            print(json.dumps(neighbors, indent=2))
         
+        if (not args.json) and (len(sys.argv) != 1):
             print()
-            print("=" * 70)
-            print(f"✓ Query complete! Found {len(neighbors)} entries.")
-            print("=" * 70)
+            print('=' * 70)
+            print(f'✓ Query complete! Found {len(neighbors)} entries.')
+            print('=' * 70)
+    
+    except Exception as e:
+        print(f'Error: {e}', file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
-        except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
-            import traceback
-            traceback.print_exc()
-            sys.exit(1)
+    return 0
 
 
 if __name__ == '__main__':

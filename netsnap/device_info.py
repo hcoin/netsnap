@@ -26,11 +26,14 @@ Install:
     pip install cffi setuptools
 
 Usage:
-    sudo python3 wireguard_genl_support_v6.py                 # Full JSON output
-    sudo python3 wireguard_genl_support_v6.py --extended      # Show extended interface details
-    sudo python3 wireguard_genl_support_v6.py --addresses     # Show detailed address info
-    sudo python3 wireguard_genl_support_v6.py --wireguard     # Show only WireGuard interfaces
-    sudo python3 wireguard_genl_support_v6.py --summary       # Show summary of special interfaces
+    sudo python3 device_info.py                 # Full JSON output
+    sudo python3 device_info.py --extended      # Show extended interface details
+    sudo python3 device_info.py --addresses     # Show detailed address info
+    sudo python3 device_info.py --wireguard     # Show only WireGuard interfaces
+    sudo python3 device_info.py --summary       # Show summary of special interfaces
+    sudo python3 device_info.py -d eth0         # Show only eth0 interface
+    sudo python3 device_info.py --device wlan0  # Show only wlan0 interface
+    sudo python3 device_info.py -d eth0 --extended  # Show extended info for eth0 only
 """
 
 from cffi import FFI
@@ -5450,25 +5453,49 @@ def main():
         parser = argparse.ArgumentParser(description='RTNetlink Query Tool with WireGuard Support')
         parser.add_argument('--no-unknown-attrs', action='store_true',
                             help='Disable unknown attribute tracking for cleaner output')
+        parser.add_argument('-d', '--device',
+                            type=str,
+                            dest='device',
+                            metavar='DEVICE',
+                            help='Filter output to show only the specified device/interface (e.g., eth0, wlan0)')
         parser.add_argument('--summary', action='store_true',
                             help='Show only a summary of special interfaces')
         parser.add_argument('--wireguard', action='store_true',
                             help='Show only WireGuard interfaces')
-        parser.add_argument('--extended', action='store_true',
+        parser.add_argument('--extended','--verbose','-v', action='store_true',
                             help='Show extended interface details (offload, carrier stats, etc.)')
         parser.add_argument('--addresses', action='store_true',
                             help='Show detailed address information with extended flags')
+        parser.add_argument("-j","--json",action='store_true',help="Output in pure JSON format (default)")
+        parser.add_argument("-t","--text",action='store_true',help="Output in text format")
+        
         args = parser.parse_args()
-    
+        if args.json and (args.summary or args.wireguard or args.extended or args.addresses):
+            parser.error(
+                f"Only --no-unknown-attrs is allowed with -j or --json"
+            )
+            
         try:
-            print("=" * 70)
-            print("RTNetlink Extended + WireGuard + Extended Address Flags")
-            print("=" * 70)
-            print(f"Unknown attribute tracking: {'DISABLED' if args.no_unknown_attrs else 'ENABLED'}")
-            print()
+            if (not args.json) and (len(sys.argv) != 1):
+                print("=" * 70)
+                print("RTNetlink Extended + WireGuard + Extended Address Flags")
+                print("=" * 70)
+                print(f"Unknown attribute tracking: {'DISABLED' if args.no_unknown_attrs else 'ENABLED'}")
+                if args.device:
+                    print(f"Filtering by device: {args.device}")
+                print()
 
             with RTNetlinkQuery(capture_unknown_attrs=not args.no_unknown_attrs) as rtq:
                 interfaces = rtq.get_interfaces()
+
+            # Apply device filter if specified
+            if args.device:
+                if args.device in interfaces:
+                    interfaces = {args.device: interfaces[args.device]}
+                else:
+                    interfaces = {}
+                    if not args.json:
+                        print(f"Warning: Device '{args.device}' not found", file=sys.stderr)
 
             if args.wireguard:
                 # Show only WireGuard interfaces
@@ -5740,17 +5767,21 @@ def main():
                 # Full JSON output
                 print(json.dumps(interfaces, indent=2))
 
-            print()
-            print("=" * 70)
-            print("✓ Query complete!")
-            print("=" * 70)
+            if (not args.json) and (len(sys.argv) != 1):
+                print()
+                print("=" * 70)
+                print("✓ Query complete!")
+                print("=" * 70)
 
         except Exception as e:
             print(f"Error: {e}", file=sys.stderr)
             import traceback
             traceback.print_exc()
             sys.exit(1)
+        
+        return 0
 
 
 if __name__ == '__main__':
     main()
+    

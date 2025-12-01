@@ -1160,14 +1160,23 @@ def main():
                             help='Show only IPv4 routes')
         parser.add_argument('--ipv6', action='store_true',
                             help='Show only IPv6 routes')
-        parser.add_argument('--table', type=str,
+        parser.add_argument('--table','-t', type=str,
                             help='Filter by table name (main, local, etc.)')
+        parser.add_argument("-j","--json",action='store_true',help="Output in pure JSON format (default).")
+        parser.add_argument("--verbose",'-v',action='store_true',help="Output in text format.")
+        
         args = parser.parse_args()
-    
+        if args.verbose: args.summary=True
+        if args.json and (args.summary or args.ipv4 or args.ipv6 or args.table or args.verbose):
+            parser.error(
+                f"Only --no-unknown-attrs is allowed with -j or --json"
+            )
+            
         try:
-            print("=" * 70)
-            print("ROUTING TABLE QUERY")
-            print("=" * 70)
+            if (not args.json) and (len(sys.argv) != 1):
+                print("=" * 70)
+                print("ROUTING TABLE QUERY")
+                print("=" * 70)
         
             with RoutingTableQuery(capture_unknown_attrs=not args.no_unknown_attrs) as query:
                 # Determine family filter
@@ -1220,6 +1229,9 @@ def main():
             import traceback
             traceback.print_exc()
             sys.exit(1)
+            
+        return 0
+
 
 if __name__ == '__main__':
     main()

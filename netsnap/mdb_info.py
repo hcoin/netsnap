@@ -45,6 +45,7 @@ import sys
 import ipaddress
 from typing import Dict, List, Any #, Optional
 
+
 # Check Python version
 if sys.version_info < (3, 8):
     raise RuntimeError("Python 3.8 or higher is required")
@@ -1212,7 +1213,7 @@ def main():
         parser = argparse.ArgumentParser(description='Multicast Database Query Tool (IGMP/MLD Snooping)')
         parser.add_argument('--no-unknown-attrs', action='store_true',
                             help='Disable unknown attribute tracking')
-        parser.add_argument('--summary', action='store_true',
+        parser.add_argument('--summary','--verbose','-v', action='store_true',
                             help='Show human-readable summary')
         parser.add_argument('--bridge', type=str,
                             help='Filter by bridge interface name')
@@ -1224,14 +1225,25 @@ def main():
                             help='Show only router ports')
         parser.add_argument('--debug', action='store_true',
                             help='Show debug information about parsing')
+
+        
+        parser.add_argument("-j","--json",action='store_true',help="Output in pure JSON format (default).")
+        parser.add_argument("-t","--text",action='store_true',help="Output in text format.")
+        
         args = parser.parse_args()
-    
+            
+        if args.json and args.summary:
+            parser.error(
+                f"--summary is not allowed with -j or --json"
+            )
+                    
         try:
-            print("=" * 70)
-            print("RTNetlink Multicast Database Query (MDB)")
-            print("=" * 70)
-            print(f"Unknown attribute tracking: {'DISABLED' if args.no_unknown_attrs else 'ENABLED'}")
-            print()
+            if (not args.json) and (len(sys.argv) != 1):
+                print("=" * 70)
+                print("RTNetlink Multicast Database Query (MDB)")
+                print("=" * 70)
+                print(f"Unknown attribute tracking: {'DISABLED' if args.no_unknown_attrs else 'ENABLED'}")
+                print()
 
             # Determine bridge filter
             bridge_ifindex = 0
@@ -1358,16 +1370,20 @@ def main():
                 # Full JSON output
                 print(json.dumps(mdb_data, indent=2))
         
-            print()
-            print("=" * 70)
-            print(f"✓ Query complete! Found {len(entries)} entries, {len(routers)} router ports")
-            print("=" * 70)
+            if (not args.json) and (len(sys.argv) != 1):
+                print()
+                print("=" * 70)
+                print(f"✓ Query complete! Found {len(entries)} entries, {len(routers)} router ports")
+                print("=" * 70)
 
         except Exception as e:
             print(f"Error: {e}", file=sys.stderr)
             import traceback
             traceback.print_exc()
             sys.exit(1)
+        
+        return 0
+
 
 if __name__ == '__main__':
     main()

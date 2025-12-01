@@ -14,7 +14,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="netsnap",
-    version="1.0.0",
+    version="2.0.0",
     author="Harry Coin",
     author_email="hcoin@quietfountain.com",
     description="Comprehensive Linux network snapshot toolkit/python library using RTNetlink and Generic Netlink",
@@ -67,6 +67,8 @@ setup(
             "netsnap-neighbor=netsnap.neighbor_info:main",
             "netsnap-mdb=netsnap.mdb_info:main",
             "netsnap-rule=netsnap.rule_info:main",
+            "netsnap-snapnet=netsnap.snapnet:main",
+
         ],
     },
 )

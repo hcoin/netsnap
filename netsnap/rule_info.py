@@ -773,18 +773,28 @@ def main():
         parser = argparse.ArgumentParser(description='Routing Rule Query Tool')
         parser.add_argument('--no-unknown-attrs', action='store_true',
                             help='Disable unknown attribute tracking')
-        parser.add_argument('--summary', action='store_true',
+        parser.add_argument('--summary','-v','--verbose', action='store_true',
                             help='Show human-readable summary')
         parser.add_argument('--ipv4', action='store_true',
                             help='Show only IPv4 rules')
         parser.add_argument('--ipv6', action='store_true',
                             help='Show only IPv6 rules')
+
+        parser.add_argument("-j","--json",action='store_true',help="Output in pure JSON format (default).")
+        parser.add_argument("-t","--text",action='store_true',help="Output in text format.")
+        
         args = parser.parse_args()
+        if args.json and args.summary:
+            parser.error(
+                f"--summary is not allowed with -j or --json"
+            )
+            
     
         try:
-            print("=" * 70)
-            print("ROUTING RULE QUERY")
-            print("=" * 70)
+            if (not args.json) and (len(sys.argv) != 1):
+                print("=" * 70)
+                print("ROUTING RULE QUERY")
+                print("=" * 70)
         
             with RoutingRuleQuery(capture_unknown_attrs=not args.no_unknown_attrs) as query:
                 # Determine family filter
@@ -871,6 +881,9 @@ def main():
             import traceback
             traceback.print_exc()
             sys.exit(1)
+            
+        return 0
+
 
 if __name__ == '__main__':
     main()

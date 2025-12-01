@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netsnap"
-version = "1.0.0"
-description = "Comprehensive Linux network snapshot toolkit and python library using RTNetlink and Generic Netlink"
+version = "2.0.0"
+description = "Comprehensive Linux network json snapshots with python library. Alternative to pyroute2 emphasizing maintainability."
 readme = "README.md"
 requires-python = ">=3.8"
-license = "MIT"
+license = {text = "MIT"}
 authors = [
     {name = "Harry Coin", email = "hcoin@quietfountain.com"}
 ]
@@ -44,6 +44,7 @@ classifiers = [
     "Topic :: System :: Networking",
     "Topic :: System :: Monitoring",
     "Topic :: System :: Systems Administration",
+    "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
     "cffi>=1.0.0",
@@ -71,12 +72,13 @@ netsnap-route = "netsnap.route_info:main"
 netsnap-neighbor = "netsnap.neighbor_info:main"
 netsnap-mdb = "netsnap.mdb_info:main"
 netsnap-rule = "netsnap.rule_info:main"
+netsnap-snapnet = "netsnap.snapnet:main"
 
 [tool.setuptools]
 packages = ["netsnap"]
 
 [tool.setuptools.package-data]
-netsnap = ["*.html"]
+netsnap = ["docs/*.html", "examples/*.json", "LICENSE","*.md",]
 
 [tool.black]
 line-length = 100
