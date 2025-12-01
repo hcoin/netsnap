@@ -186,7 +186,7 @@ sudo snapnet > network-snapshot-$(date +%Y%m%d-%H%M%S).json
     ...
   ],
   "_metadata": {
-    "version": "2.0.0",
+    "version": "2.0.1",
     "python_version": "3.12.3"
   }
 }
@@ -369,7 +369,7 @@ If one module fails, the others continue. Errors are captured in the `_metadata.
   "mdb": [],
   "rules": [...],
   "_metadata": {
-    "version": "2.0.0",
+    "version": "2.0.1",
     "errors": [
       "mdb_info: Permission denied"
     ]

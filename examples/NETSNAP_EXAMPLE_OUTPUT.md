@@ -219,7 +219,7 @@
     }
   ],
   "_metadata": {
-    "version": "2.0.0",
+    "version": "2.0.1",
     "python_version": "3.12.3"
   }
 }
@@ -230,7 +230,7 @@
 When run without `--pretty`, output is compact (single line):
 
 ```json
-{"devices":{"lo":{...},"eth0":{...}},"routes":[...],"neighbors":[...],"mdb":[...],"rules":[...], "_metadata":{"version":"2.0.0","python_version":"3.12.3"}}
+{"devices":{"lo":{...},"eth0":{...}},"routes":[...],"neighbors":[...],"mdb":[...],"rules":[...], "_metadata":{"version":"2.0.1","python_version":"3.12.3"}}
 ```
 
 ## With Errors
@@ -245,7 +245,7 @@ If some modules fail:
   "mdb": [],
   "rules": [...],
   "_metadata": {
-    "version": "2.0.0",
+    "version": "2.0.1",
     "python_version": "3.12.3",
     "errors": [
       "route_info: Permission denied",

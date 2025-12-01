@@ -25,7 +25,7 @@ import json
 import argparse
 from typing import Dict, Any
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 # Check Python version
 if sys.version_info < (3, 8):
@@ -50,7 +50,7 @@ def capture_network_snapshot(capture_unknown_attrs) -> Dict[str, Any]:
     
     # Capture device information
     try:
-        import device_info
+        from netsnap import device_info
         with device_info.RTNetlinkQuery(capture_unknown_attrs) as rtq:
             snapshot['devices'] = rtq.get_interfaces()
     except Exception as e:
@@ -59,7 +59,7 @@ def capture_network_snapshot(capture_unknown_attrs) -> Dict[str, Any]:
     
     # Capture routing information
     try:
-        import route_info
+        from netsnap import route_info
         with route_info.RoutingTableQuery(capture_unknown_attrs) as rtq:
             snapshot['routes'] = rtq.get_routes()
     except Exception as e:
@@ -68,7 +68,7 @@ def capture_network_snapshot(capture_unknown_attrs) -> Dict[str, Any]:
     
     # Capture neighbor information
     try:
-        import neighbor_info
+        from netsnap import neighbor_info
         with neighbor_info.NeighborTableQuery(capture_unknown_attrs) as ntq:
             snapshot['neighbors'] = ntq.get_neighbors()
     except Exception as e:
@@ -77,7 +77,7 @@ def capture_network_snapshot(capture_unknown_attrs) -> Dict[str, Any]:
     
     # Capture multicast database information
     try:
-        import mdb_info
+        from netsnap import mdb_info
         with mdb_info.MDBQuery(capture_unknown_attrs) as mtq:
             snapshot['mdb'] = mtq.get_mdb()
     except Exception as e:
@@ -86,7 +86,7 @@ def capture_network_snapshot(capture_unknown_attrs) -> Dict[str, Any]:
     
     # Capture routing rules information
     try:
-        import rule_info
+        from netsnap import rule_info
         with rule_info.RoutingRuleQuery(capture_unknown_attrs) as rtq:
             snapshot['rules'] = rtq.get_rules()
     except Exception as e:
