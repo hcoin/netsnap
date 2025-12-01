@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 RTNetlink Interface Query with C Library via CFFI
-Extended with veth, Bridge Port/STP Support, WireGuard Generic Netlink, and DPLL Pin Support
+Extended with veth, Bridge Port/STP Support, WireGuard Generic Netlink, TUN/TAP, and DPLL Pin Support
 
 Complete bridge master configuration support including:
 - STP timers and status flags
@@ -9,6 +9,13 @@ Complete bridge master configuration support including:
 - Netfilter integration
 - VLAN statistics
 - Group forwarding
+
+TUN/TAP Device Support:
+- Device type identification (TUN vs TAP)
+- Owner and group information
+- Packet information and virtio net header settings
+- Multi-queue support
+- Persistence status
 
 DPLL (Digital Phase-Locked Loop) Pin Support:
 - Hardware time synchronization information
@@ -304,6 +311,30 @@ typedef struct {
     int has_inner_proto_inherit;
 } geneve_info_t;
 
+// TUN/TAP device information
+typedef struct {
+    unsigned int owner;        // Owner user ID
+    unsigned int group;        // Owner group ID
+    unsigned char type;        // Device type (TUN or TAP)
+    unsigned char pi;          // Packet information enabled
+    unsigned char vnet_hdr;    // Virtio net header enabled
+    unsigned char persist;     // Persistent device
+    unsigned char multi_queue; // Multi-queue enabled
+    unsigned char _pad_tun[3]; // Padding for alignment
+    unsigned int num_queues;   // Number of queues
+    unsigned int num_disabled_queues; // Number of disabled queues
+    int has_owner;
+    int has_group;
+    int has_type;
+    int has_pi;
+    int has_vnet_hdr;
+    int has_persist;
+    int has_multi_queue;
+    int has_num_queues;
+    int has_num_disabled_queues;
+    unsigned char _pad_tun_end[4]; // Padding at end for 8-byte alignment with next structure
+} tun_info_t;
+
 
 // WireGuard peer information
 typedef struct {
@@ -427,6 +458,7 @@ typedef struct {
     wg_device_info_t wireguard;
     geneve_info_t geneve;
     dpll_pin_info_t dpll_pin;
+    tun_info_t tun;
     char slave_kind[32];
     int has_slave_kind;
     unsigned char linkmode;
@@ -852,6 +884,26 @@ typedef struct {
 #define IFLA_GENEVE_TTL_INHERIT 12
 #define IFLA_GENEVE_DF 13
 #define IFLA_GENEVE_INNER_PROTO_INHERIT 14
+#endif
+
+// TUN/TAP attribute definitions
+#ifndef IFLA_TUN_UNSPEC
+#define IFLA_TUN_UNSPEC 0
+#define IFLA_TUN_OWNER 1
+#define IFLA_TUN_GROUP 2
+#define IFLA_TUN_TYPE 3
+#define IFLA_TUN_PI 4
+#define IFLA_TUN_VNET_HDR 5
+#define IFLA_TUN_PERSIST 6
+#define IFLA_TUN_MULTI_QUEUE 7
+#define IFLA_TUN_NUM_QUEUES 8
+#define IFLA_TUN_NUM_DISABLED_QUEUES 9
+#endif
+
+// TUN device types
+#ifndef IFF_TUN
+#define IFF_TUN 0x0001
+#define IFF_TAP 0x0002
 #endif
 
 // Create netlink socket
@@ -2253,6 +2305,78 @@ void nl_parse_info_data(const char* kind, struct rtattr* data_attr, link_info_t*
                     break;
             }
         }        
+    } else if (strcmp(kind, "tun") == 0) {
+        static const unsigned short known_tun_attrs[] = { 
+            IFLA_TUN_OWNER, IFLA_TUN_GROUP, IFLA_TUN_TYPE, IFLA_TUN_PI,
+            IFLA_TUN_VNET_HDR, IFLA_TUN_PERSIST, IFLA_TUN_MULTI_QUEUE,
+            IFLA_TUN_NUM_QUEUES, IFLA_TUN_NUM_DISABLED_QUEUES
+        };
+        static const int known_tun_count = sizeof(known_tun_attrs) / sizeof(known_tun_attrs[0]);
+        
+        memset(&link->tun, 0, sizeof(tun_info_t));
+        
+        for (; RTA_OK(rta, data_len); rta = RTA_NEXT(rta, data_len)) {
+            track_unknown_attr(link->unknown_info_data_attrs, 
+                              &link->unknown_info_data_attrs_count,
+                              64, rta->rta_type, known_tun_attrs, known_tun_count);
+            
+            switch (rta->rta_type) {
+                case IFLA_TUN_OWNER:
+                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned int)) {
+                        link->tun.owner = *(unsigned int*)RTA_DATA(rta);
+                        link->tun.has_owner = 1;
+                    }
+                    break;
+                case IFLA_TUN_GROUP:
+                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned int)) {
+                        link->tun.group = *(unsigned int*)RTA_DATA(rta);
+                        link->tun.has_group = 1;
+                    }
+                    break;
+                case IFLA_TUN_TYPE:
+                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned char)) {
+                        link->tun.type = *(unsigned char*)RTA_DATA(rta);
+                        link->tun.has_type = 1;
+                    }
+                    break;
+                case IFLA_TUN_PI:
+                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned char)) {
+                        link->tun.pi = *(unsigned char*)RTA_DATA(rta);
+                        link->tun.has_pi = 1;
+                    }
+                    break;
+                case IFLA_TUN_VNET_HDR:
+                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned char)) {
+                        link->tun.vnet_hdr = *(unsigned char*)RTA_DATA(rta);
+                        link->tun.has_vnet_hdr = 1;
+                    }
+                    break;
+                case IFLA_TUN_PERSIST:
+                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned char)) {
+                        link->tun.persist = *(unsigned char*)RTA_DATA(rta);
+                        link->tun.has_persist = 1;
+                    }
+                    break;
+                case IFLA_TUN_MULTI_QUEUE:
+                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned char)) {
+                        link->tun.multi_queue = *(unsigned char*)RTA_DATA(rta);
+                        link->tun.has_multi_queue = 1;
+                    }
+                    break;
+                case IFLA_TUN_NUM_QUEUES:
+                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned int)) {
+                        link->tun.num_queues = *(unsigned int*)RTA_DATA(rta);
+                        link->tun.has_num_queues = 1;
+                    }
+                    break;
+                case IFLA_TUN_NUM_DISABLED_QUEUES:
+                    if (RTA_PAYLOAD(rta) >= sizeof(unsigned int)) {
+                        link->tun.num_disabled_queues = *(unsigned int*)RTA_DATA(rta);
+                        link->tun.has_num_disabled_queues = 1;
+                    }
+                    break;
+            }
+        }
     } else {
         for (; RTA_OK(rta, data_len); rta = RTA_NEXT(rta, data_len)) {
             static const unsigned short known_attrs[] = { 0 };
@@ -3634,6 +3758,29 @@ typedef struct {
     } geneve_info_t;    
 
     typedef struct {
+        unsigned int owner;
+        unsigned int group;
+        unsigned char type;
+        unsigned char pi;
+        unsigned char vnet_hdr;
+        unsigned char persist;
+        unsigned char multi_queue;
+        unsigned char _pad_tun[3];
+        unsigned int num_queues;
+        unsigned int num_disabled_queues;
+        int has_owner;
+        int has_group;
+        int has_type;
+        int has_pi;
+        int has_vnet_hdr;
+        int has_persist;
+        int has_multi_queue;
+        int has_num_queues;
+        int has_num_disabled_queues;
+        unsigned char _pad_tun_end[4];
+    } tun_info_t;
+
+    typedef struct {
         int has_dpll_pin;
         unsigned long long pin_id;
         unsigned long long parent_id;
@@ -3728,6 +3875,7 @@ typedef struct {
         wg_device_info_t wireguard;
         geneve_info_t geneve;
         dpll_pin_info_t dpll_pin;
+        tun_info_t tun;
         char slave_kind[32];
         int has_slave_kind;
         unsigned char linkmode;
@@ -4356,7 +4504,9 @@ class RTNetlinkQuery:
             if 'wireguard' in link:
                 interfaces[if_name]['wireguard'] = link['wireguard']
             if 'geneve' in link:
-                interfaces[if_name]['geneve'] = link['geneve']                
+                interfaces[if_name]['geneve'] = link['geneve']
+            if 'tun' in link:
+                interfaces[if_name]['tun'] = link['tun']
             if 'bridge_port' in link:
                 interfaces[if_name]['bridge_port'] = link['bridge_port']
             if 'bridge_config' in link:
@@ -4767,6 +4917,45 @@ class RTNetlinkQuery:
                         
                         if geneve_info:
                             link_info['geneve'] = geneve_info
+                    
+                    # TUN/TAP device information
+                    if kind == 'tun':
+                        tun_info = {}
+                        
+                        if link.tun.has_owner:
+                            tun_info['owner'] = link.tun.owner
+                        
+                        if link.tun.has_group:
+                            tun_info['group'] = link.tun.group
+                        
+                        if link.tun.has_type:
+                            type_names = {
+                                0x0001: 'TUN',
+                                0x0002: 'TAP'
+                            }
+                            tun_info['type'] = type_names.get(link.tun.type, f'unknown_{link.tun.type}')
+                            tun_info['type_value'] = link.tun.type
+                        
+                        if link.tun.has_pi:
+                            tun_info['packet_info'] = bool(link.tun.pi)
+                        
+                        if link.tun.has_vnet_hdr:
+                            tun_info['vnet_header'] = bool(link.tun.vnet_hdr)
+                        
+                        if link.tun.has_persist:
+                            tun_info['persistent'] = bool(link.tun.persist)
+                        
+                        if link.tun.has_multi_queue:
+                            tun_info['multi_queue'] = bool(link.tun.multi_queue)
+                        
+                        if link.tun.has_num_queues:
+                            tun_info['num_queues'] = link.tun.num_queues
+                        
+                        if link.tun.has_num_disabled_queues:
+                            tun_info['num_disabled_queues'] = link.tun.num_disabled_queues
+                        
+                        if tun_info:
+                            link_info['tun'] = tun_info
                 
                 # DPLL Pin information (for NICs with hardware time synchronization)
                 if link.dpll_pin.has_dpll_pin:
@@ -5753,7 +5942,20 @@ def main():
                             elif 'remote6' in geneve:
                                 special_info.append(f"remote:{geneve['remote6']}")
                             if 'port' in geneve:
-                                special_info.append(f"port:{geneve['port']}")                        
+                                special_info.append(f"port:{geneve['port']}")
+                    
+                    if if_info.get('kind') == 'tun':
+                        special_info.append("TUN/TAP")
+                        if 'tun' in if_info:
+                            tun = if_info['tun']
+                            if 'type' in tun:
+                                special_info.append(f"type:{tun['type']}")
+                            if 'multi_queue' in tun and tun['multi_queue']:
+                                special_info.append("multi_queue")
+                            if 'num_queues' in tun:
+                                special_info.append(f"queues:{tun['num_queues']}")
+                            if 'persistent' in tun and tun['persistent']:
+                                special_info.append("persistent")
 
                     if 'bridge_port' in if_info:
                         bp = if_info['bridge_port']
