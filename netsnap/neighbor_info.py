@@ -762,7 +762,25 @@ def decode_unknown_attrs(unknown_list: List[int]) -> Dict[str, Any]:
 
 
 class NeighborTableQuery:
-    """Query neighbor table via RTNetlink"""
+    """
+    Query neighbor table via RTNetlink.
+    
+    Can be used with context manager or direct calls:
+        # Option 1: Context manager (socket auto-closed)
+        with NeighborTableQuery() as ntq:
+            neighbors = ntq.get_neighbors()
+        
+        # Option 2: Direct call (socket managed per-call)
+        ntq = NeighborTableQuery()
+        neighbors = ntq.get_neighbors()
+        
+        # Option 3: Manual socket management
+        ntq = NeighborTableQuery()
+        ntq.open()
+        ipv4_neighbors = ntq.get_neighbors(family='ipv4')
+        ipv6_neighbors = ntq.get_neighbors(family='ipv6')
+        ntq.close()
+    """
     
     def __init__(self, capture_unknown_attrs: bool = True):
         """
@@ -771,25 +789,40 @@ class NeighborTableQuery:
         Args:
             capture_unknown_attrs: Whether to capture unknown NDA attributes
         """
-        self.sock = None
+        self.sock = -1
         self.capture_unknown_attrs = capture_unknown_attrs
     
-    def __enter__(self):
-        """Context manager entry"""
+    def open(self):
+        """Explicitly open the netlink socket"""
+        if self.sock >= 0:
+            return  # Already open
+        
         self.sock = lib.nl_create_socket()
         if self.sock < 0:
             raise RuntimeError("Failed to create netlink socket")
+    
+    def close(self):
+        """Explicitly close the netlink socket"""
+        if self.sock >= 0:
+            lib.nl_close_socket(self.sock)
+            self.sock = -1
+    
+    def __enter__(self):
+        """Context manager entry"""
+        self.open()
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit"""
-        if self.sock is not None:
-            lib.nl_close_socket(self.sock)
-            self.sock = None
+        self.close()
+        return False
     
     def get_neighbors(self, family: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Get neighbor table entries.
+        
+        If socket is not already open (e.g., via 'with' or explicit open()),
+        this method will open and close it automatically for this call.
         
         Args:
             family: Filter by family ('ipv4', 'ipv6', 'bridge', or None for all)
@@ -797,167 +830,175 @@ class NeighborTableQuery:
         Returns:
             List of neighbor entry dictionaries
         """
-        if self.sock is None:
-            raise RuntimeError("Socket not initialized - use context manager")
-        
-        # Determine netlink family
-        nl_family = AF_UNSPEC
-        if family == 'ipv4':
-            nl_family = AF_INET
-        elif family == 'ipv6':
-            nl_family = AF_INET6
-        elif family == 'bridge':
-            nl_family = AF_BRIDGE
-        
-        # Send request
-        seq = ffi.new("unsigned int*")
-        if lib.nl_send_getneigh(self.sock, seq, nl_family) < 0:
-            raise RuntimeError("Failed to send RTM_GETNEIGH request")
-        
-        # Receive response
-        response = lib.nl_recv_response(self.sock, seq[0])
-        if response == ffi.NULL:
-            raise RuntimeError("Failed to receive netlink response")
+        # Check if we need to auto-open the socket
+        need_auto_close = False
+        if self.sock < 0:
+            self.open()
+            need_auto_close = True
         
         try:
-            # Get neighbor count
-            count = lib.nl_get_neighbor_count(response)
-            if count == 0:
-                return []
+            # Determine netlink family
+            nl_family = AF_UNSPEC
+            if family == 'ipv4':
+                nl_family = AF_INET
+            elif family == 'ipv6':
+                nl_family = AF_INET6
+            elif family == 'bridge':
+                nl_family = AF_BRIDGE
             
-            # Parse neighbors
-            count_out = ffi.new("int*")
-            neighbors_array = lib.nl_parse_neighbors(
-                response, 
-                count_out, 
-                1 if self.capture_unknown_attrs else 0
-            )
+            # Send request
+            seq = ffi.new("unsigned int*")
+            if lib.nl_send_getneigh(self.sock, seq, nl_family) < 0:
+                raise RuntimeError("Failed to send RTM_GETNEIGH request")
             
-            if neighbors_array == ffi.NULL:
-                return []
+            # Receive response
+            response = lib.nl_recv_response(self.sock, seq[0])
+            if response == ffi.NULL:
+                raise RuntimeError("Failed to receive netlink response")
             
-            # Convert to Python list
-            neighbors = []
-            for i in range(count_out[0]):
-                entry = neighbors_array[i]
+            try:
+                # Get neighbor count
+                count = lib.nl_get_neighbor_count(response)
+                if count == 0:
+                    return []
                 
-                # Decode family
-                family_name = {
-                    AF_INET: 'ipv4',
-                    AF_INET6: 'ipv6',
-                    AF_BRIDGE: 'bridge',
-                }.get(entry.family, f'family_{entry.family}')
+                # Parse neighbors
+                count_out = ffi.new("int*")
+                neighbors_array = lib.nl_parse_neighbors(
+                    response, 
+                    count_out, 
+                    1 if self.capture_unknown_attrs else 0
+                )
                 
-                # Decode state
-                state_name = decode_state(entry.state)
+                if neighbors_array == ffi.NULL:
+                    return []
                 
-                # Decode flags
-                flag_names = decode_flags(entry.flags)
-                
-                # Decode hardware type
-                hw_type_name = HW_TYPES.get(entry.type, f'TYPE_{entry.type}')
-                
-                # Build neighbor info dict
-                neigh_info = {
-                    'ifindex': entry.ifindex,
-                    'ifname': ffi.string(entry.ifname).decode('utf-8'),  # ALWAYS INCLUDED!
-                    'family': family_name,
-                    'state': entry.state,
-                    'state_name': state_name,
-                    'flags': entry.flags,
-                    'flag_names': flag_names,
-                    'type': entry.type,
-                    'type_name': hw_type_name,
-                }
-                
-                # Decode destination address
-                if entry.has_dst_addr:
-                    if entry.family == AF_INET:
-                        dst_bytes = bytes(entry.dst_addr[0:4])
-                        dst_str = '.'.join(str(b) for b in dst_bytes)
-                        neigh_info['dst'] = dst_str
-                        
-                        try:
-                            ipv4_addr = ipaddress.IPv4Address(dst_bytes)
-                            neigh_info['dst_canonical'] = str(ipv4_addr)
-                        except ValueError:
-                            pass
-                    elif entry.family == AF_INET6:
-                        dst_bytes = bytes(entry.dst_addr[0:16])
-                        try:
-                            ipv6_addr = ipaddress.IPv6Address(dst_bytes)
-                            neigh_info['dst'] = str(ipv6_addr)
-                        except ValueError:
-                            neigh_info['dst'] = dst_bytes.hex()
-                    elif entry.family == AF_BRIDGE:
-                        # Bridge FDB entry - dst is MAC address
-                        if entry.has_lladdr and entry.lladdr_len == 6:
-                            # For bridge, the "destination" is often in lladdr
-                            pass
+                # Convert to Python list
+                neighbors = []
+                for i in range(count_out[0]):
+                    entry = neighbors_array[i]
+                    
+                    # Decode family
+                    family_name = {
+                        AF_INET: 'ipv4',
+                        AF_INET6: 'ipv6',
+                        AF_BRIDGE: 'bridge',
+                    }.get(entry.family, f'family_{entry.family}')
+                    
+                    # Decode state
+                    state_name = decode_state(entry.state)
+                    
+                    # Decode flags
+                    flag_names = decode_flags(entry.flags)
+                    
+                    # Decode hardware type
+                    hw_type_name = HW_TYPES.get(entry.type, f'TYPE_{entry.type}')
+                    
+                    # Build neighbor info dict
+                    neigh_info = {
+                        'ifindex': entry.ifindex,
+                        'ifname': ffi.string(entry.ifname).decode('utf-8'),  # ALWAYS INCLUDED!
+                        'family': family_name,
+                        'state': entry.state,
+                        'state_name': state_name,
+                        'flags': entry.flags,
+                        'flag_names': flag_names,
+                        'type': entry.type,
+                        'type_name': hw_type_name,
+                    }
+                    
+                    # Decode destination address
+                    if entry.has_dst_addr:
+                        if entry.family == AF_INET:
+                            dst_bytes = bytes(entry.dst_addr[0:4])
+                            dst_str = '.'.join(str(b) for b in dst_bytes)
+                            neigh_info['dst'] = dst_str
+                            
+                            try:
+                                ipv4_addr = ipaddress.IPv4Address(dst_bytes)
+                                neigh_info['dst_canonical'] = str(ipv4_addr)
+                            except ValueError:
+                                pass
+                        elif entry.family == AF_INET6:
+                            dst_bytes = bytes(entry.dst_addr[0:16])
+                            try:
+                                ipv6_addr = ipaddress.IPv6Address(dst_bytes)
+                                neigh_info['dst'] = str(ipv6_addr)
+                            except ValueError:
+                                neigh_info['dst'] = dst_bytes.hex()
+                        elif entry.family == AF_BRIDGE:
+                            # Bridge FDB entry - dst is MAC address
+                            if entry.has_lladdr and entry.lladdr_len == 6:
+                                # For bridge, the "destination" is often in lladdr
+                                pass
+                            else:
+                                # Sometimes dst contains MAC for bridge entries
+                                dst_bytes = bytes(entry.dst_addr[0:6])
+                                neigh_info['dst'] = ':'.join(f'{b:02x}' for b in dst_bytes)
+                    
+                    # Decode link-layer address (MAC address)
+                    if entry.has_lladdr:
+                        if entry.lladdr_len == 6:
+                            # Standard Ethernet MAC
+                            mac = ':'.join(f'{entry.lladdr[j]:02x}' for j in range(6))
+                            neigh_info['lladdr'] = mac
+                        elif entry.lladdr_len == 4:
+                            # IPv4 address (for some proxy entries)
+                            lladdr_bytes = bytes(entry.lladdr[0:4])
+                            neigh_info['lladdr'] = '.'.join(str(b) for b in lladdr_bytes)
                         else:
-                            # Sometimes dst contains MAC for bridge entries
-                            dst_bytes = bytes(entry.dst_addr[0:6])
-                            neigh_info['dst'] = ':'.join(f'{b:02x}' for b in dst_bytes)
-                
-                # Decode link-layer address (MAC address)
-                if entry.has_lladdr:
-                    if entry.lladdr_len == 6:
-                        # Standard Ethernet MAC
-                        mac = ':'.join(f'{entry.lladdr[j]:02x}' for j in range(6))
-                        neigh_info['lladdr'] = mac
-                    elif entry.lladdr_len == 4:
-                        # IPv4 address (for some proxy entries)
-                        lladdr_bytes = bytes(entry.lladdr[0:4])
-                        neigh_info['lladdr'] = '.'.join(str(b) for b in lladdr_bytes)
-                    else:
-                        # Other address types
-                        lladdr_bytes = bytes(entry.lladdr[0:entry.lladdr_len])
-                        neigh_info['lladdr'] = lladdr_bytes.hex()
-                        neigh_info['lladdr_len'] = entry.lladdr_len
-                
-                # Additional attributes
-                if entry.has_probes:
-                    neigh_info['probes'] = entry.probes
-                
-                if entry.has_vlan:
-                    neigh_info['vlan'] = entry.vlan
-                
-                if entry.has_master:
-                    neigh_info['master'] = entry.master
-                
-                # Cache info
-                if (entry.cacheinfo.has_cacheinfo_confirmed or 
-                    entry.cacheinfo.has_cacheinfo_used or 
-                    entry.cacheinfo.has_cacheinfo_updated):
-                    cacheinfo = {}
+                            # Other address types
+                            lladdr_bytes = bytes(entry.lladdr[0:entry.lladdr_len])
+                            neigh_info['lladdr'] = lladdr_bytes.hex()
+                            neigh_info['lladdr_len'] = entry.lladdr_len
                     
-                    if entry.cacheinfo.has_cacheinfo_confirmed:
-                        cacheinfo['confirmed'] = entry.cacheinfo.cacheinfo_confirmed
-                    if entry.cacheinfo.has_cacheinfo_used:
-                        cacheinfo['used'] = entry.cacheinfo.cacheinfo_used
-                    if entry.cacheinfo.has_cacheinfo_updated:
-                        cacheinfo['updated'] = entry.cacheinfo.cacheinfo_updated
-                    if entry.cacheinfo.has_cacheinfo_refcnt:
-                        cacheinfo['refcnt'] = entry.cacheinfo.cacheinfo_refcnt
+                    # Additional attributes
+                    if entry.has_probes:
+                        neigh_info['probes'] = entry.probes
                     
-                    neigh_info['cacheinfo'] = cacheinfo
+                    if entry.has_vlan:
+                        neigh_info['vlan'] = entry.vlan
+                    
+                    if entry.has_master:
+                        neigh_info['master'] = entry.master
+                    
+                    # Cache info
+                    if (entry.cacheinfo.has_cacheinfo_confirmed or 
+                        entry.cacheinfo.has_cacheinfo_used or 
+                        entry.cacheinfo.has_cacheinfo_updated):
+                        cacheinfo = {}
+                        
+                        if entry.cacheinfo.has_cacheinfo_confirmed:
+                            cacheinfo['confirmed'] = entry.cacheinfo.cacheinfo_confirmed
+                        if entry.cacheinfo.has_cacheinfo_used:
+                            cacheinfo['used'] = entry.cacheinfo.cacheinfo_used
+                        if entry.cacheinfo.has_cacheinfo_updated:
+                            cacheinfo['updated'] = entry.cacheinfo.cacheinfo_updated
+                        if entry.cacheinfo.has_cacheinfo_refcnt:
+                            cacheinfo['refcnt'] = entry.cacheinfo.cacheinfo_refcnt
+                        
+                        neigh_info['cacheinfo'] = cacheinfo
+                    
+                    # Unknown attributes
+                    if self.capture_unknown_attrs and entry.unknown_nda_attrs_count > 0:
+                        unknown_list = []
+                        for j in range(entry.unknown_nda_attrs_count):
+                            unknown_list.append(entry.unknown_nda_attrs[j])
+                        neigh_info['unknown_nda_attrs'] = unknown_list
+                        neigh_info['unknown_nda_attrs_decoded'] = decode_unknown_attrs(unknown_list)
+                    
+                    neighbors.append(neigh_info)
                 
-                # Unknown attributes
-                if self.capture_unknown_attrs and entry.unknown_nda_attrs_count > 0:
-                    unknown_list = []
-                    for j in range(entry.unknown_nda_attrs_count):
-                        unknown_list.append(entry.unknown_nda_attrs[j])
-                    neigh_info['unknown_nda_attrs'] = unknown_list
-                    neigh_info['unknown_nda_attrs_decoded'] = decode_unknown_attrs(unknown_list)
-                
-                neighbors.append(neigh_info)
+                lib.nl_free_neighbors(neighbors_array)
+                return neighbors
             
-            lib.nl_free_neighbors(neighbors_array)
-            return neighbors
+            finally:
+                lib.nl_free_response(response)
         
         finally:
-            lib.nl_free_response(response)
-
+            # Auto-close socket if we auto-opened it
+            if need_auto_close:
+                self.close()
 
 # Example usage
 def main():

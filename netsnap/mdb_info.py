@@ -958,28 +958,56 @@ class MDBQuery:
     """
     Query multicast database information using RTNETLINK protocol via C library.
     Supports bridge MDB entries for IGMP/MLD snooping.
+    
+    Can be used with context manager or direct calls:
+        # Option 1: Context manager (socket auto-closed)
+        with MDBQuery() as mdbq:
+            data = mdbq.get_mdb()
+        
+        # Option 2: Direct call (socket managed per-call)
+        mdbq = MDBQuery()
+        data = mdbq.get_mdb()
+        
+        # Option 3: Manual socket management
+        mdbq = MDBQuery()
+        mdbq.open()
+        data1 = mdbq.get_mdb(bridge_ifindex=1)
+        data2 = mdbq.get_mdb(bridge_ifindex=2)
+        mdbq.close()
     """
     
     def __init__(self, capture_unknown_attrs: bool = True):
         self.sock = -1
         self.capture_unknown_attrs = capture_unknown_attrs
+        self._auto_opened = False  # Track if we auto-opened the socket
         
         # Cache for interface names (ifindex -> name string)
-        # This prevents issues if interface names change between query and later lookups
         self.ifindex_cache: Dict[int, str] = {}
     
-    def __enter__(self):
-        """Context manager entry - create socket"""
+    def open(self):
+        """Explicitly open the netlink socket"""
+        if self.sock >= 0:
+            return  # Already open
+        
         self.sock = lib.nl_create_socket()
         if self.sock < 0:
             raise RuntimeError("Failed to create netlink socket")
-        return self
     
-    def __exit__(self, exc_type, exc_val, exc_tb): #@UnusedVariable
-        """Context manager exit - close socket"""
+    def close(self):
+        """Explicitly close the netlink socket"""
         if self.sock >= 0:
             lib.nl_close_socket(self.sock)
             self.sock = -1
+        self._auto_opened = False
+    
+    def __enter__(self):
+        """Context manager entry - create socket"""
+        self.open()
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - close socket"""
+        self.close()
         return False
     
     def _cache_ifindex_name(self, ifindex: int) -> str:
@@ -1006,203 +1034,217 @@ class MDBQuery:
         """
         Query multicast database entries and router ports.
         
+        If socket is not already open (e.g., via 'with' or explicit open()),
+        this method will open and close it automatically for this call.
+        
         Args:
             bridge_ifindex: Bridge interface index (0 for all bridges)
         
         Returns:
             Dictionary with 'entries' and 'routers' lists
         """
-        seq_ptr = ffi.new("unsigned int*")
-        
-        if lib.nl_send_getmdb(self.sock, seq_ptr, bridge_ifindex) < 0:
-            raise RuntimeError("Failed to send RTM_GETMDB request")
-        
-        seq = seq_ptr[0]
-        response = lib.nl_recv_response(self.sock, seq)
-        if not response:
-            raise RuntimeError("Failed to receive response for RTM_GETMDB")
+        # Check if we need to auto-open the socket
+        need_auto_close = False
+        if self.sock < 0:
+            self.open()
+            need_auto_close = True
         
         try:
-            # Parse MDB entries
-            entries_ptr = ffi.new("mdb_entry_t**")
-            entries_count_ptr = ffi.new("int*")
+            seq_ptr = ffi.new("unsigned int*")
             
-            result = lib.nl_parse_mdb_entries(response, entries_ptr, entries_count_ptr)
-            if result < 0:
-                raise RuntimeError("Failed to parse MDB entries")
+            if lib.nl_send_getmdb(self.sock, seq_ptr, bridge_ifindex) < 0:
+                raise RuntimeError("Failed to send RTM_GETMDB request")
             
-            entries = []
-            entries_count = entries_count_ptr[0]
-            entries_array = entries_ptr[0]
+            seq = seq_ptr[0]
+            response = lib.nl_recv_response(self.sock, seq)
+            if not response:
+                raise RuntimeError("Failed to receive response for RTM_GETMDB")
             
-            for i in range(entries_count):
-                entry = entries_array[i]
+            try:
+                # Parse MDB entries
+                entries_ptr = ffi.new("mdb_entry_t**")
+                entries_count_ptr = ffi.new("int*")
                 
-                # Get state name
-                state_name_ptr = lib.nl_get_mdb_state_name(entry.state)
-                state_name = ffi.string(state_name_ptr).decode('utf-8')
+                result = lib.nl_parse_mdb_entries(response, entries_ptr, entries_count_ptr)
+                if result < 0:
+                    raise RuntimeError("Failed to parse MDB entries")
                 
-                # Get flags name
-                flags_name_ptr = lib.nl_get_mdb_flags_name(entry.flags)
-                flags_name = ffi.string(flags_name_ptr).decode('utf-8')
+                entries = []
+                entries_count = entries_count_ptr[0]
+                entries_array = entries_ptr[0]
                 
-                entry_info = {
-                    'ifindex': entry.ifindex,
-                    'ifname': self._cache_ifindex_name(entry.ifindex),
-                    'state': entry.state,
-                    'state_name': state_name,
-                    'flags': entry.flags,
-                    'flags_name': flags_name,
-                }
-                
-                # Add port
-                if entry.has_port:
-                    entry_info['port_ifindex'] = entry.port_ifindex
-                    entry_info['port_ifname'] = self._cache_ifindex_name(entry.port_ifindex)
-                
-                # Add VLAN
-                if entry.has_vid:
-                    entry_info['vid'] = entry.vid
-                
-                # Decode group address
-                if entry.has_addr:
-                    if entry.addr_proto == ETH_P_IP:
-                        addr_bytes = bytes(entry.addr[0:4])
-                        try:
-                            ipv4_addr = ipaddress.IPv4Address(addr_bytes)
-                            entry_info['group'] = str(ipv4_addr)
-                            entry_info['family'] = 'ipv4'
-                        except ValueError:
-                            entry_info['group'] = addr_bytes.hex()
-                            entry_info['family'] = 'unknown'
-                    elif entry.addr_proto == ETH_P_IPV6:
-                        addr_bytes = bytes(entry.addr[0:16])
-                        try:
-                            ipv6_addr = ipaddress.IPv6Address(addr_bytes)
-                            entry_info['group'] = str(ipv6_addr)
-                            entry_info['family'] = 'ipv6'
-                        except ValueError:
-                            entry_info['group'] = addr_bytes.hex()
-                            entry_info['family'] = 'unknown'
-                    elif entry.addr_proto == 0x0000:
-                        # L2 multicast (MAC address)
-                        addr_bytes = bytes(entry.addr[0:6])
-                        entry_info['group'] = ':'.join(f'{b:02x}' for b in addr_bytes)
-                        entry_info['family'] = 'l2'
-                    else:
-                        entry_info['group'] = f'proto_0x{entry.addr_proto:04x}'
-                        entry_info['family'] = 'unknown'
+                for i in range(entries_count):
+                    entry = entries_array[i]
                     
-                    entry_info['addr_proto'] = entry.addr_proto
+                    # Get state name
+                    state_name_ptr = lib.nl_get_mdb_state_name(entry.state)
+                    state_name = ffi.string(state_name_ptr).decode('utf-8')
+                    
+                    # Get flags name
+                    flags_name_ptr = lib.nl_get_mdb_flags_name(entry.flags)
+                    flags_name = ffi.string(flags_name_ptr).decode('utf-8')
+                    
+                    entry_info = {
+                        'ifindex': entry.ifindex,
+                        'ifname': self._cache_ifindex_name(entry.ifindex),
+                        'state': entry.state,
+                        'state_name': state_name,
+                        'flags': entry.flags,
+                        'flags_name': flags_name,
+                    }
+                    
+                    # Add port
+                    if entry.has_port:
+                        entry_info['port_ifindex'] = entry.port_ifindex
+                        entry_info['port_ifname'] = self._cache_ifindex_name(entry.port_ifindex)
+                    
+                    # Add VLAN
+                    if entry.has_vid:
+                        entry_info['vid'] = entry.vid
+                    
+                    # Decode group address
+                    if entry.has_addr:
+                        if entry.addr_proto == ETH_P_IP:
+                            addr_bytes = bytes(entry.addr[0:4])
+                            try:
+                                ipv4_addr = ipaddress.IPv4Address(addr_bytes)
+                                entry_info['group'] = str(ipv4_addr)
+                                entry_info['family'] = 'ipv4'
+                            except ValueError:
+                                entry_info['group'] = addr_bytes.hex()
+                                entry_info['family'] = 'unknown'
+                        elif entry.addr_proto == ETH_P_IPV6:
+                            addr_bytes = bytes(entry.addr[0:16])
+                            try:
+                                ipv6_addr = ipaddress.IPv6Address(addr_bytes)
+                                entry_info['group'] = str(ipv6_addr)
+                                entry_info['family'] = 'ipv6'
+                            except ValueError:
+                                entry_info['group'] = addr_bytes.hex()
+                                entry_info['family'] = 'unknown'
+                        elif entry.addr_proto == 0x0000:
+                            # L2 multicast (MAC address)
+                            addr_bytes = bytes(entry.addr[0:6])
+                            entry_info['group'] = ':'.join(f'{b:02x}' for b in addr_bytes)
+                            entry_info['family'] = 'l2'
+                        else:
+                            entry_info['group'] = f'proto_0x{entry.addr_proto:04x}'
+                            entry_info['family'] = 'unknown'
+                        
+                        entry_info['addr_proto'] = entry.addr_proto
+                    
+                    # Timer
+                    if entry.has_timer:
+                        entry_info['timer'] = entry.timer
+                        entry_info['timer_sec'] = entry.timer / 100.0
+                    
+                    # Group mode
+                    if entry.has_group_mode:
+                        mode_name_ptr = lib.nl_get_group_mode_name(entry.group_mode)
+                        mode_name = ffi.string(mode_name_ptr).decode('utf-8')
+                        entry_info['group_mode'] = mode_name
+                    
+                    # Protocol info
+                    if entry.has_proto:
+                        entry_info['proto'] = entry.proto
+                    
+                    if entry.has_rtprot:
+                        entry_info['rtprot'] = entry.rtprot
+                    
+                    # Unknown attributes
+                    if self.capture_unknown_attrs:
+                        if entry.unknown_mdba_attrs_count > 0:
+                            unknown_list = []
+                            for j in range(entry.unknown_mdba_attrs_count):
+                                unknown_list.append(entry.unknown_mdba_attrs[j])
+                            entry_info['unknown_mdba_attrs'] = unknown_list
+                            entry_info['unknown_mdba_attrs_decoded'] = decode_unknown_attrs(
+                                unknown_list, 'MDBA'
+                            )
+                        
+                        if entry.unknown_entry_attrs_count > 0:
+                            unknown_list = []
+                            for j in range(entry.unknown_entry_attrs_count):
+                                unknown_list.append(entry.unknown_entry_attrs[j])
+                            entry_info['unknown_entry_attrs'] = unknown_list
+                            entry_info['unknown_entry_attrs_decoded'] = decode_unknown_attrs(
+                                unknown_list, 'MDBA_MDB_EATTR'
+                            )
+                    
+                    entries.append(entry_info)
                 
-                # Timer
-                if entry.has_timer:
-                    entry_info['timer'] = entry.timer
-                    entry_info['timer_sec'] = entry.timer / 100.0
+                lib.nl_free_mdb_entries(entries_array)
                 
-                # Group mode
-                if entry.has_group_mode:
-                    mode_name_ptr = lib.nl_get_group_mode_name(entry.group_mode)
-                    mode_name = ffi.string(mode_name_ptr).decode('utf-8')
-                    entry_info['group_mode'] = mode_name
+                # Parse router ports
+                routers_ptr = ffi.new("mdb_router_t**")
+                routers_count_ptr = ffi.new("int*")
                 
-                # Protocol info
-                if entry.has_proto:
-                    entry_info['proto'] = entry.proto
+                result = lib.nl_parse_mdb_routers(response, routers_ptr, routers_count_ptr)
+                if result < 0:
+                    raise RuntimeError("Failed to parse MDB routers")
                 
-                if entry.has_rtprot:
-                    entry_info['rtprot'] = entry.rtprot
+                routers = []
+                routers_count = routers_count_ptr[0]
+                routers_array = routers_ptr[0]
                 
-                # Unknown attributes
-                if self.capture_unknown_attrs:
-                    if entry.unknown_mdba_attrs_count > 0:
+                for i in range(routers_count):
+                    router = routers_array[i]
+                    
+                    router_info = {
+                        'ifindex': router.ifindex,
+                        'ifname': self._cache_ifindex_name(router.ifindex),
+                    }
+                    
+                    if router.has_port:
+                        router_info['port_ifindex'] = router.port_ifindex
+                        router_info['port_ifname'] = self._cache_ifindex_name(router.port_ifindex)
+                    
+                    if router.has_router_type:
+                        type_name_ptr = lib.nl_get_router_type_name(router.router_type)
+                        type_name = ffi.string(type_name_ptr).decode('utf-8')
+                        router_info['type'] = type_name
+                        router_info['type_value'] = router.router_type
+                    
+                    if router.has_timer:
+                        router_info['timer'] = router.timer
+                        router_info['timer_sec'] = router.timer / 100.0
+                    
+                    if router.has_inet_timer:
+                        router_info['inet_timer'] = router.inet_timer
+                        router_info['inet_timer_sec'] = router.inet_timer / 100.0
+                    
+                    if router.has_inet6_timer:
+                        router_info['inet6_timer'] = router.inet6_timer
+                        router_info['inet6_timer_sec'] = router.inet6_timer / 100.0
+                    
+                    if router.has_vid:
+                        router_info['vid'] = router.vid
+                    
+                    if self.capture_unknown_attrs and router.unknown_rtr_attrs_count > 0:
                         unknown_list = []
-                        for j in range(entry.unknown_mdba_attrs_count):
-                            unknown_list.append(entry.unknown_mdba_attrs[j])
-                        entry_info['unknown_mdba_attrs'] = unknown_list
-                        entry_info['unknown_mdba_attrs_decoded'] = decode_unknown_attrs(
-                            unknown_list, 'MDBA'
+                        for j in range(router.unknown_rtr_attrs_count):
+                            unknown_list.append(router.unknown_rtr_attrs[j])
+                        router_info['unknown_rtr_attrs'] = unknown_list
+                        router_info['unknown_rtr_attrs_decoded'] = decode_unknown_attrs(
+                            unknown_list, 'MDBA_ROUTER_PATTR'
                         )
                     
-                    if entry.unknown_entry_attrs_count > 0:
-                        unknown_list = []
-                        for j in range(entry.unknown_entry_attrs_count):
-                            unknown_list.append(entry.unknown_entry_attrs[j])
-                        entry_info['unknown_entry_attrs'] = unknown_list
-                        entry_info['unknown_entry_attrs_decoded'] = decode_unknown_attrs(
-                            unknown_list, 'MDBA_MDB_EATTR'
-                        )
+                    routers.append(router_info)
                 
-                entries.append(entry_info)
-            
-            lib.nl_free_mdb_entries(entries_array)
-            
-            # Parse router ports
-            routers_ptr = ffi.new("mdb_router_t**")
-            routers_count_ptr = ffi.new("int*")
-            
-            result = lib.nl_parse_mdb_routers(response, routers_ptr, routers_count_ptr)
-            if result < 0:
-                raise RuntimeError("Failed to parse MDB routers")
-            
-            routers = []
-            routers_count = routers_count_ptr[0]
-            routers_array = routers_ptr[0]
-            
-            for i in range(routers_count):
-                router = routers_array[i]
+                lib.nl_free_mdb_routers(routers_array)
                 
-                router_info = {
-                    'ifindex': router.ifindex,
-                    'ifname': self._cache_ifindex_name(router.ifindex),
+                return {
+                    'entries': entries,
+                    'routers': routers
                 }
-                
-                if router.has_port:
-                    router_info['port_ifindex'] = router.port_ifindex
-                    router_info['port_ifname'] = self._cache_ifindex_name(router.port_ifindex)
-                
-                if router.has_router_type:
-                    type_name_ptr = lib.nl_get_router_type_name(router.router_type)
-                    type_name = ffi.string(type_name_ptr).decode('utf-8')
-                    router_info['type'] = type_name
-                    router_info['type_value'] = router.router_type
-                
-                if router.has_timer:
-                    router_info['timer'] = router.timer
-                    router_info['timer_sec'] = router.timer / 100.0
-                
-                if router.has_inet_timer:
-                    router_info['inet_timer'] = router.inet_timer
-                    router_info['inet_timer_sec'] = router.inet_timer / 100.0
-                
-                if router.has_inet6_timer:
-                    router_info['inet6_timer'] = router.inet6_timer
-                    router_info['inet6_timer_sec'] = router.inet6_timer / 100.0
-                
-                if router.has_vid:
-                    router_info['vid'] = router.vid
-                
-                if self.capture_unknown_attrs and router.unknown_rtr_attrs_count > 0:
-                    unknown_list = []
-                    for j in range(router.unknown_rtr_attrs_count):
-                        unknown_list.append(router.unknown_rtr_attrs[j])
-                    router_info['unknown_rtr_attrs'] = unknown_list
-                    router_info['unknown_rtr_attrs_decoded'] = decode_unknown_attrs(
-                        unknown_list, 'MDBA_ROUTER_PATTR'
-                    )
-                
-                routers.append(router_info)
             
-            lib.nl_free_mdb_routers(routers_array)
-            
-            return {
-                'entries': entries,
-                'routers': routers
-            }
+            finally:
+                lib.nl_free_response(response)
         
         finally:
-            lib.nl_free_response(response)
-
+            # Auto-close socket if we auto-opened it
+            if need_auto_close:
+                self.close()
 
 # Example usage
 def main():

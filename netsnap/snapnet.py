@@ -25,7 +25,7 @@ import json
 import argparse
 from typing import Dict, Any
 
-__version__ = "2.1.0"
+__version__ = "2.2.1"
 
 # Check Python version
 if sys.version_info < (3, 8):

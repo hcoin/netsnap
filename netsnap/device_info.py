@@ -46,6 +46,7 @@ Usage:
 from cffi import FFI
 import json
 import sys
+
 #import os
 import ipaddress
 from typing import Dict, List, Any
@@ -3410,7 +3411,7 @@ const char* nl_get_operstate_name(unsigned char operstate) {
         case IF_OPER_LOWERLAYERDOWN: return "lowerlayerdown";
         case IF_OPER_TESTING: return "testing";
         case IF_OPER_DORMANT: return "dormant";
-        case IFA_CACHEINFO: return "up";
+        case IF_OPER_UP: return "up";
         default: return NULL;
     }
 }
@@ -4458,8 +4459,17 @@ class RTNetlinkQuery:
     
     def get_interfaces(self) -> Dict[str, Dict[str, Any]]:
         """Query all network interfaces and their addresses"""
+        if self.sock < 0:
+            self.__enter__()
+            exit_when_done = True
+        else:
+            exit_when_done = False
+            
         links = self._get_links()
         addrs = self._get_addrs()
+        
+        if exit_when_done:
+            self.__exit__(0,0,0)
         
         interfaces = {}
         
@@ -4707,9 +4717,9 @@ class RTNetlinkQuery:
     def _get_links(self) -> List[Dict[str, Any]]:
         """Get link information for all interfaces"""
         seq_ptr = ffi.new("unsigned int*")
-        
-        if lib.nl_send_getlink(self.sock, seq_ptr) < 0:
-            raise RuntimeError("Failed to send RTM_GETLINK request")
+        ret = lib.nl_send_getlink(self.sock, seq_ptr)
+        if ret < 0:
+            raise RuntimeError("Failed to send RTM_GETLINK request: "+str( ffi.errno))
         
         seq = seq_ptr[0]
         response = lib.nl_recv_response(self.sock, seq)

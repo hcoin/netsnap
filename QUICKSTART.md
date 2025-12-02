@@ -103,18 +103,75 @@ sudo netsnap-neighbor --interface eth0
 
 ## Python API
 
-Use NetSnap programmatically:
+Use NetSnap programmatically with three different patterns:
+
+### Pattern 1: Direct Call (Recommended for single queries)
+Socket auto-managed per call:
 
 ```python
-from netsnap import device_info
+from netsnap.device_info import RTNetlinkQuery
 
-# Get all interfaces (requires root)
-with device_info.RTNetlinkQuery() as rtq:
+# Simplest usage - socket managed automatically
+rtq = RTNetlinkQuery()
+interfaces = rtq.get_interfaces()
+
+# Process interface data
+for if_name, if_info in interfaces.items():
+    print(f"{if_name}: {if_info['operstate_name']}")
+```
+
+### Pattern 2: Context Manager (Recommended for multiple queries within one function call)
+Socket opened on entry, closed on exit:
+
+```python
+from netsnap.device_info import RTNetlinkQuery
+
+# Context manager handles socket lifecycle
+with RTNetlinkQuery() as rtq:
     interfaces = rtq.get_interfaces()
 
 # Process interface data
 for if_name, if_info in interfaces.items():
     print(f"{if_name}: {if_info['operstate_name']}")
+```
+
+### Pattern 3: Manual Socket Management (Recommended for multiple queries across functions using a class global instance)
+Explicit control when making multiple related queries. Don't forget to close on destroy:
+
+```python
+from netsnap.device_info import RTNetlinkQuery
+from netsnap.route_info import RoutingTableQuery
+from netsnap.rule_info import RoutingRuleQuery
+from netsnap.mdb_info import MDBQuery
+
+# Efficient for multiple queries - reuses socket
+rtq = RTNetlinkQuery()
+rtq.open()
+interfaces = rtq.get_interfaces()
+link_info = rtq.get_link_info()
+addr_info = rtq.get_address_info()
+rtq.close()
+
+# Query multiple address families efficiently
+rt_query = RoutingTableQuery()
+rt_query.open()
+ipv4_routes = rt_query.get_routes(family='ipv4')
+ipv6_routes = rt_query.get_routes(family='ipv6')
+rt_query.close()
+
+# Query routing rules efficiently
+rule_query = RoutingRuleQuery()
+rule_query.open()
+ipv4_rules = rule_query.get_rules(family='ipv4')
+ipv6_rules = rule_query.get_rules(family='ipv6')
+rule_query.close()
+
+# Query multicast database for multiple bridges
+mdb_query = MDBQuery()
+mdb_query.open()
+br0_mdb = mdb_query.get_mdb(bridge_ifindex=1)
+br1_mdb = mdb_query.get_mdb(bridge_ifindex=2)
+mdb_query.close()
 ```
 
 ## Requirements

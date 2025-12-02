@@ -14,7 +14,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="netsnap",
-    version="2.1.0",
+    version="2.2.1",
     author="Harry Coin",
     author_email="hcoin@quietfountain.com",
     description="Comprehensive Linux network snapshot toolkit/python library using RTNetlink and Generic Netlink",

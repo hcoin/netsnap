@@ -5,6 +5,24 @@ All notable changes to the netsnap project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2025-12-2
+### Changed
+- example programs to demonstrate various use cases properly.
+- added example output of the comprehensive example.
+  note all network and mac addresses listed in the public
+  example are random.
+
+## [2.2.0] - 2025-12-2
+#### Added
+- Support for direct calls to class functions, no longer requires
+  use of with <class> as foo:
+  however if more than one call is anticipated, using the
+  'with' construction remains faster.  Note addition of 
+  explicit open and close calls if equivalent functionality
+  to 'with' is desired but can't be completed within one
+  function.
+- Refactored documentation for calling conventions.
+
 ## [2.1.0] - 2025-12-1
 #### Added
 - Support for TAP/TUN devices &  attributes in device_info

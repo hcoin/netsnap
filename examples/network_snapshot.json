@@ -1,0 +1,3169 @@
+{
+  "timestamp": "2025-12-02T16:00:25.143477",
+  "data": {
+    "interfaces": {
+      "lo": {
+        "index": 1,
+        "type": 772,
+        "type_name": "loopback",
+        "mtu": 65536,
+        "mac": "00:00:00:00:00:00",
+        "operstate": 0,
+        "operstate_name": "unknown",
+        "flags": 65609,
+        "flag_names": [
+          "UP",
+          "LOOPBACK",
+          "RUNNING",
+          "LOWER_UP"
+        ],
+        "stats": {
+          "rx_packets": 793610,
+          "tx_packets": 793610,
+          "rx_bytes": 137089233,
+          "tx_bytes": 137089233,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0,
+          "multicast": 0,
+          "collisions": 0,
+          "rx_length_errors": 0,
+          "rx_over_errors": 0,
+          "rx_crc_errors": 0,
+          "rx_frame_errors": 0,
+          "rx_fifo_errors": 0,
+          "rx_missed_errors": 0,
+          "tx_aborted_errors": 0,
+          "tx_carrier_errors": 0,
+          "tx_fifo_errors": 0,
+          "tx_heartbeat_errors": 0,
+          "tx_window_errors": 0,
+          "rx_compressed": 0,
+          "tx_compressed": 0,
+          "rx_nohandler": 0,
+          "is_64bit": true
+        },
+        "addresses": [
+          {
+            "family": "ipv4",
+            "address": "127.0.0.1",
+            "prefixlen": 8,
+            "scope": 254,
+            "scope_name": "host",
+            "flags": 128,
+            "flag_names": [
+              "PERMANENT"
+            ],
+            "ipinterface": "127.0.0.1/8",
+            "network": "127.0.0.0/8",
+            "netmask": "192.0.2.1",
+            "hostmask": "192.0.2.2",
+            "is_secondary": false,
+            "local": "127.0.0.1",
+            "label": "lo",
+            "cacheinfo": {
+              "preferred_lft": 4294967295,
+              "valid_lft": 4294967295,
+              "created_tstamp": 483,
+              "updated_tstamp": 483,
+              "preferred_lft_str": "forever",
+              "valid_lft_str": "forever"
+            },
+            "extended_flags": 128,
+            "readiness": "ready"
+          },
+          {
+            "family": "ipv6",
+            "address": "::1",
+            "prefixlen": 128,
+            "scope": 254,
+            "scope_name": "host",
+            "flags": 128,
+            "flag_names": [
+              "PERMANENT",
+              "NOPREFIXROUTE"
+            ],
+            "ipinterface": "::1/128",
+            "network": "::1/128",
+            "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+            "hostmask": "::",
+            "is_temporary": false,
+            "label": "",
+            "cacheinfo": {
+              "preferred_lft": 4294967295,
+              "valid_lft": 4294967295,
+              "created_tstamp": 483,
+              "updated_tstamp": 483,
+              "preferred_lft_str": "forever",
+              "valid_lft_str": "forever"
+            },
+            "extended_flags": 640,
+            "readiness": "ready"
+          }
+        ],
+        "txqlen": 1000,
+        "qdisc": "noqueue",
+        "unknown_ifla_attrs": [
+          32830
+        ],
+        "unknown_ifla_attrs_decoded": [
+          {
+            "number": 32830,
+            "base_number": 62,
+            "nested": true,
+            "name": "IFLA_DEVLINK_PORT (nested)"
+          }
+        ]
+      },
+      "enp4s0": {
+        "index": 2,
+        "type": 1,
+        "type_name": "ether",
+        "mtu": 1500,
+        "mac": "02:01:02:03:04:05",
+        "operstate": 6,
+        "operstate_name": "up",
+        "flags": 69699,
+        "flag_names": [
+          "UP",
+          "BROADCAST",
+          "RUNNING",
+          "MULTICAST",
+          "LOWER_UP"
+        ],
+        "stats": {
+          "rx_packets": 70005826,
+          "tx_packets": 15699418,
+          "rx_bytes": 46211506162,
+          "tx_bytes": 2811105621,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 5,
+          "tx_dropped": 0,
+          "multicast": 450386,
+          "collisions": 0,
+          "rx_length_errors": 0,
+          "rx_over_errors": 0,
+          "rx_crc_errors": 0,
+          "rx_frame_errors": 0,
+          "rx_fifo_errors": 0,
+          "rx_missed_errors": 0,
+          "tx_aborted_errors": 0,
+          "tx_carrier_errors": 0,
+          "tx_fifo_errors": 0,
+          "tx_heartbeat_errors": 0,
+          "tx_window_errors": 0,
+          "rx_compressed": 0,
+          "tx_compressed": 0,
+          "rx_nohandler": 0,
+          "is_64bit": true
+        },
+        "addresses": [
+          {
+            "family": "ipv4",
+            "address": "192.0.2.3",
+            "prefixlen": 20,
+            "scope": 0,
+            "scope_name": "universe",
+            "flags": 0,
+            "flag_names": [
+              "NOPREFIXROUTE"
+            ],
+            "ipinterface": "192.0.2.3/20",
+            "network": "192.0.2.4/20",
+            "netmask": "192.0.2.5",
+            "hostmask": "192.0.2.6",
+            "is_secondary": false,
+            "local": "192.0.2.3",
+            "broadcast": "192.0.2.7",
+            "label": "enp4s0",
+            "cacheinfo": {
+              "preferred_lft": 9573,
+              "valid_lft": 9573,
+              "created_tstamp": 1853,
+              "updated_tstamp": 60751839,
+              "preferred_lft_str": "9573s",
+              "valid_lft_str": "9573s"
+            },
+            "extended_flags": 512,
+            "readiness": "ready"
+          },
+          {
+            "family": "ipv6",
+            "address": "2001:db8::1",
+            "prefixlen": 128,
+            "scope": 0,
+            "scope_name": "universe",
+            "flags": 0,
+            "flag_names": [
+              "NOPREFIXROUTE"
+            ],
+            "ipinterface": "2001:db8::1/128",
+            "network": "2001:db8::1/128",
+            "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+            "hostmask": "::",
+            "is_temporary": false,
+            "label": "",
+            "cacheinfo": {
+              "preferred_lft": 13760,
+              "valid_lft": 13760,
+              "created_tstamp": 2330,
+              "updated_tstamp": 61170542,
+              "preferred_lft_str": "13760s",
+              "valid_lft_str": "13760s"
+            },
+            "extended_flags": 512,
+            "readiness": "ready"
+          },
+          {
+            "family": "ipv6",
+            "address": "fe80::b72:9144:eb09:f127",
+            "prefixlen": 64,
+            "scope": 253,
+            "scope_name": "link",
+            "flags": 128,
+            "flag_names": [
+              "PERMANENT",
+              "NOPREFIXROUTE"
+            ],
+            "ipinterface": "fe80::b72:9144:eb09:f127/64",
+            "network": "fe80::/64",
+            "netmask": "ffff:ffff:ffff:ffff::",
+            "hostmask": "2001:db8::2",
+            "is_temporary": false,
+            "label": "",
+            "cacheinfo": {
+              "preferred_lft": 4294967295,
+              "valid_lft": 4294967295,
+              "created_tstamp": 1833,
+              "updated_tstamp": 1833,
+              "preferred_lft_str": "forever",
+              "valid_lft_str": "forever"
+            },
+            "extended_flags": 640,
+            "readiness": "ready"
+          }
+        ],
+        "txqlen": 1000,
+        "qdisc": "fq_codel",
+        "unknown_ifla_attrs": [
+          57,
+          32830
+        ],
+        "unknown_ifla_attrs_decoded": [
+          {
+            "number": 57,
+            "base_number": 57,
+            "nested": false,
+            "name": "IFLA_PARENT_DEV_BUS_NAME"
+          },
+          {
+            "number": 32830,
+            "base_number": 62,
+            "nested": true,
+            "name": "IFLA_DEVLINK_PORT (nested)"
+          }
+        ]
+      },
+      "docker0": {
+        "index": 3,
+        "type": 1,
+        "type_name": "ether",
+        "mtu": 1500,
+        "mac": "02:02:03:04:05:06",
+        "operstate": 2,
+        "operstate_name": "down",
+        "flags": 4099,
+        "flag_names": [
+          "UP",
+          "BROADCAST",
+          "MULTICAST"
+        ],
+        "stats": {
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0,
+          "multicast": 0,
+          "collisions": 0,
+          "rx_length_errors": 0,
+          "rx_over_errors": 0,
+          "rx_crc_errors": 0,
+          "rx_frame_errors": 0,
+          "rx_fifo_errors": 0,
+          "rx_missed_errors": 0,
+          "tx_aborted_errors": 0,
+          "tx_carrier_errors": 0,
+          "tx_fifo_errors": 0,
+          "tx_heartbeat_errors": 0,
+          "tx_window_errors": 0,
+          "rx_compressed": 0,
+          "tx_compressed": 0,
+          "rx_nohandler": 0,
+          "is_64bit": true
+        },
+        "addresses": [
+          {
+            "family": "ipv4",
+            "address": "192.0.2.8",
+            "prefixlen": 16,
+            "scope": 0,
+            "scope_name": "universe",
+            "flags": 128,
+            "flag_names": [
+              "PERMANENT"
+            ],
+            "ipinterface": "192.0.2.8/16",
+            "network": "192.0.2.9/16",
+            "netmask": "192.0.2.10",
+            "hostmask": "192.0.2.11",
+            "is_secondary": false,
+            "local": "192.0.2.8",
+            "broadcast": "192.0.2.12",
+            "label": "docker0",
+            "cacheinfo": {
+              "preferred_lft": 4294967295,
+              "valid_lft": 4294967295,
+              "created_tstamp": 1939,
+              "updated_tstamp": 1939,
+              "preferred_lft_str": "forever",
+              "valid_lft_str": "forever"
+            },
+            "extended_flags": 128,
+            "readiness": "down"
+          }
+        ],
+        "txqlen": 0,
+        "qdisc": "noqueue",
+        "kind": "bridge",
+        "bridge_config": {
+          "stp_enabled": false,
+          "forward_delay": 1500,
+          "forward_delay_sec": 15.0,
+          "hello_time": 200,
+          "hello_time_sec": 2.0,
+          "max_age": 2000,
+          "max_age_sec": 20.0,
+          "hello_timer": 0,
+          "hello_timer_sec": 0.0,
+          "tcn_timer": 0,
+          "tcn_timer_sec": 0.0,
+          "topology_change_timer": 0,
+          "topology_change_timer_sec": 0.0,
+          "gc_timer": 12067,
+          "gc_timer_sec": 120.67,
+          "topology_change": false,
+          "topology_change_detected": false,
+          "priority": 32768,
+          "root_id": "8000.02:42:c5:8a:12:be",
+          "bridge_id": "8000.02:42:c5:8a:12:be",
+          "root_port": 0,
+          "root_path_cost": 0,
+          "ageing_time": 30000,
+          "ageing_time_sec": 300.0,
+          "fdb_n_learned": 0,
+          "fdb_max_learned": 0,
+          "vlan_filtering": false,
+          "vlan_protocol": 129,
+          "vlan_protocol_hex": "0x0081",
+          "vlan_default_pvid": 1,
+          "vlan_stats_enabled": false,
+          "vlan_stats_per_port": false,
+          "group_fwd_mask": 0,
+          "group_fwd_mask_hex": "0x0000",
+          "group_addr": "01:80:c2:00:00:00",
+          "mcast_snooping": true,
+          "mcast_router": 1,
+          "mcast_router_mode": "auto",
+          "mcast_querier": false,
+          "mcast_query_use_ifaddr": false,
+          "mcast_stats_enabled": false,
+          "mcast_igmp_version": 2,
+          "mcast_mld_version": 1,
+          "mcast_hash_elasticity": 16,
+          "mcast_hash_max": 4096,
+          "mcast_last_member_cnt": 2,
+          "mcast_startup_query_cnt": 2,
+          "mcast_last_member_intvl": 100,
+          "mcast_last_member_intvl_sec": 1.0,
+          "mcast_membership_intvl": 26000,
+          "mcast_membership_intvl_sec": 260.0,
+          "mcast_querier_intvl": 25500,
+          "mcast_querier_intvl_sec": 255.0,
+          "mcast_query_intvl": 12500,
+          "mcast_query_intvl_sec": 125.0,
+          "mcast_query_response_intvl": 1000,
+          "mcast_query_response_intvl_sec": 10.0,
+          "mcast_startup_query_intvl": 3125,
+          "mcast_startup_query_intvl_sec": 31.25,
+          "nf_call_iptables": false,
+          "nf_call_ip6tables": false,
+          "nf_call_arptables": false,
+          "multi_boolopt": 30064771072,
+          "multi_boolopt_hex": "0x0000000700000000"
+        },
+        "unknown_ifla_attrs": [
+          32830
+        ],
+        "unknown_ifla_attrs_decoded": [
+          {
+            "number": 32830,
+            "base_number": 62,
+            "nested": true,
+            "name": "IFLA_DEVLINK_PORT (nested)"
+          }
+        ]
+      }
+    },
+    "ipv4_routes": [
+      {
+        "family": "ipv4",
+        "type": "UNICAST",
+        "protocol": "DHCP",
+        "scope": "UNIVERSE",
+        "table": "MAIN",
+        "dst_len": 0,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "0.0.0.0/0",
+        "gateway": "192.0.2.13",
+        "prefsrc": "192.0.2.3",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "metric": 100,
+        "table_id": 254
+      },
+      {
+        "family": "ipv4",
+        "type": "UNICAST",
+        "protocol": "KERNEL",
+        "scope": "LINK",
+        "table": "MAIN",
+        "dst_len": 20,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "192.0.2.4/20",
+        "prefsrc": "192.0.2.3",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "metric": 100,
+        "table_id": 254
+      },
+      {
+        "family": "ipv4",
+        "type": "UNICAST",
+        "protocol": "KERNEL",
+        "scope": "LINK",
+        "table": "MAIN",
+        "dst_len": 16,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 16,
+        "dst": "192.0.2.9/16",
+        "prefsrc": "192.0.2.8",
+        "dev_index": 3,
+        "dev": "docker0",
+        "table_id": 254
+      },
+      {
+        "family": "ipv4",
+        "type": "LOCAL",
+        "protocol": "KERNEL",
+        "scope": "HOST",
+        "table": "LOCAL",
+        "dst_len": 32,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "192.0.2.3/32",
+        "prefsrc": "192.0.2.3",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "table_id": 255
+      },
+      {
+        "family": "ipv4",
+        "type": "BROADCAST",
+        "protocol": "KERNEL",
+        "scope": "LINK",
+        "table": "LOCAL",
+        "dst_len": 32,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "192.0.2.7/32",
+        "prefsrc": "192.0.2.3",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "table_id": 255
+      },
+      {
+        "family": "ipv4",
+        "type": "LOCAL",
+        "protocol": "KERNEL",
+        "scope": "HOST",
+        "table": "LOCAL",
+        "dst_len": 8,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "127.0.0.0/8",
+        "prefsrc": "127.0.0.1",
+        "dev_index": 1,
+        "dev": "lo",
+        "table_id": 255
+      },
+      {
+        "family": "ipv4",
+        "type": "LOCAL",
+        "protocol": "KERNEL",
+        "scope": "HOST",
+        "table": "LOCAL",
+        "dst_len": 32,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "127.0.0.1/32",
+        "prefsrc": "127.0.0.1",
+        "dev_index": 1,
+        "dev": "lo",
+        "table_id": 255
+      },
+      {
+        "family": "ipv4",
+        "type": "BROADCAST",
+        "protocol": "KERNEL",
+        "scope": "LINK",
+        "table": "LOCAL",
+        "dst_len": 32,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "127.255.255.255/32",
+        "prefsrc": "127.0.0.1",
+        "dev_index": 1,
+        "dev": "lo",
+        "table_id": 255
+      },
+      {
+        "family": "ipv4",
+        "type": "LOCAL",
+        "protocol": "KERNEL",
+        "scope": "HOST",
+        "table": "LOCAL",
+        "dst_len": 32,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "192.0.2.8/32",
+        "prefsrc": "192.0.2.8",
+        "dev_index": 3,
+        "dev": "docker0",
+        "table_id": 255
+      },
+      {
+        "family": "ipv4",
+        "type": "BROADCAST",
+        "protocol": "KERNEL",
+        "scope": "LINK",
+        "table": "LOCAL",
+        "dst_len": 32,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 16,
+        "dst": "192.0.2.12/32",
+        "prefsrc": "192.0.2.8",
+        "dev_index": 3,
+        "dev": "docker0",
+        "table_id": 255
+      }
+    ],
+    "ipv6_routes": [
+      {
+        "family": "ipv6",
+        "type": "UNICAST",
+        "protocol": "KERNEL",
+        "scope": "UNIVERSE",
+        "table": "MAIN",
+        "dst_len": 128,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "2001:db8::1/128",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "metric": 100,
+        "table_id": 254,
+        "cacheinfo": {
+          "clntref": 0,
+          "last_use": 0,
+          "expires": 0,
+          "error": 0,
+          "used": 0
+        }
+      },
+      {
+        "family": "ipv6",
+        "type": "UNICAST",
+        "protocol": "RA",
+        "scope": "UNIVERSE",
+        "table": "MAIN",
+        "dst_len": 64,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "2001:db8::3/64",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "metric": 100,
+        "table_id": 254,
+        "cacheinfo": {
+          "clntref": 0,
+          "last_use": 0,
+          "expires": 0,
+          "error": 0,
+          "used": 0
+        }
+      },
+      {
+        "family": "ipv6",
+        "type": "UNICAST",
+        "protocol": "KERNEL",
+        "scope": "UNIVERSE",
+        "table": "MAIN",
+        "dst_len": 64,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "fe80::/64",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "metric": 1024,
+        "table_id": 254,
+        "cacheinfo": {
+          "clntref": 0,
+          "last_use": 0,
+          "expires": 0,
+          "error": 0,
+          "used": 0
+        }
+      },
+      {
+        "family": "ipv6",
+        "type": "UNICAST",
+        "protocol": "RA",
+        "scope": "UNIVERSE",
+        "table": "MAIN",
+        "dst_len": 0,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "::/0",
+        "gateway": "fe80::5054:a9ff:fe79:cd1c",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "metric": 100,
+        "table_id": 254,
+        "cacheinfo": {
+          "clntref": 0,
+          "last_use": 0,
+          "expires": 0,
+          "error": 0,
+          "used": 0
+        }
+      },
+      {
+        "family": "ipv6",
+        "type": "LOCAL",
+        "protocol": "KERNEL",
+        "scope": "UNIVERSE",
+        "table": "LOCAL",
+        "dst_len": 128,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "::1/128",
+        "dev_index": 1,
+        "dev": "lo",
+        "metric": 0,
+        "table_id": 255,
+        "cacheinfo": {
+          "clntref": 0,
+          "last_use": 0,
+          "expires": 0,
+          "error": 0,
+          "used": 0
+        }
+      },
+      {
+        "family": "ipv6",
+        "type": "LOCAL",
+        "protocol": "KERNEL",
+        "scope": "UNIVERSE",
+        "table": "LOCAL",
+        "dst_len": 128,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "2001:db8::1/128",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "metric": 0,
+        "table_id": 255,
+        "cacheinfo": {
+          "clntref": 0,
+          "last_use": 0,
+          "expires": 0,
+          "error": 0,
+          "used": 0
+        }
+      },
+      {
+        "family": "ipv6",
+        "type": "LOCAL",
+        "protocol": "KERNEL",
+        "scope": "UNIVERSE",
+        "table": "LOCAL",
+        "dst_len": 128,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "fe80::b72:9144:eb09:f127/128",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "metric": 0,
+        "table_id": 255,
+        "cacheinfo": {
+          "clntref": 0,
+          "last_use": 0,
+          "expires": 0,
+          "error": 0,
+          "used": 0
+        }
+      },
+      {
+        "family": "ipv6",
+        "type": "MULTICAST",
+        "protocol": "KERNEL",
+        "scope": "UNIVERSE",
+        "table": "LOCAL",
+        "dst_len": 8,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "dst": "ff00::/8",
+        "dev_index": 2,
+        "dev": "enp4s0",
+        "metric": 256,
+        "table_id": 255,
+        "cacheinfo": {
+          "clntref": 0,
+          "last_use": 0,
+          "expires": 0,
+          "error": 0,
+          "used": 0
+        }
+      }
+    ],
+    "arp_cache": [
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "ipv4",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "224.0.0.251",
+        "dst_canonical": "224.0.0.251",
+        "lladdr": "01:00:5e:00:00:fb",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 210,
+          "used": 98,
+          "updated": 98,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.14",
+        "dst_canonical": "192.0.2.14",
+        "lladdr": "02:03:04:05:06:07",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 64,
+          "used": 64,
+          "updated": 116,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.15",
+        "dst_canonical": "192.0.2.15",
+        "lladdr": "02:04:05:06:07:08",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 218,
+          "used": 218,
+          "updated": 115,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.16",
+        "dst_canonical": "192.0.2.16",
+        "lladdr": "02:05:06:07:08:09",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 218,
+          "used": 218,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "224.0.0.22",
+        "dst_canonical": "224.0.0.22",
+        "lladdr": "01:00:5e:00:00:16",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 60,
+          "used": 204,
+          "updated": 204,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "ipv4",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 3,
+        "type_name": "AX25",
+        "dst": "192.0.2.12",
+        "dst_canonical": "192.0.2.12",
+        "lladdr": "ff:ff:ff:ff:ff:ff",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 176,
+          "used": 64,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 2,
+        "state_name": "REACHABLE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.13",
+        "dst_canonical": "192.0.2.13",
+        "lladdr": "02:06:07:08:09:0a",
+        "probes": 6,
+        "cacheinfo": {
+          "confirmed": 50,
+          "used": 167,
+          "updated": 167,
+          "refcnt": 1
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 32,
+        "state_name": "FAILED",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.17",
+        "dst_canonical": "192.0.2.17",
+        "probes": 6,
+        "cacheinfo": {
+          "confirmed": 38,
+          "used": 218,
+          "updated": 167,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.18",
+        "dst_canonical": "192.0.2.18",
+        "lladdr": "02:07:08:09:0a:0b",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 116,
+          "used": 116,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.19",
+        "dst_canonical": "192.0.2.19",
+        "lladdr": "02:06:07:08:09:0a",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 116,
+          "used": 116,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "ipv4",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "224.0.0.22",
+        "dst_canonical": "224.0.0.22",
+        "lladdr": "01:00:5e:00:00:16",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 219,
+          "used": 107,
+          "updated": 107,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "ipv4",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "239.255.255.250",
+        "dst_canonical": "239.255.255.250",
+        "lladdr": "01:00:5e:7f:ff:fa",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 216,
+          "used": 104,
+          "updated": 104,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 32,
+        "state_name": "FAILED",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.20",
+        "dst_canonical": "192.0.2.20",
+        "probes": 6,
+        "cacheinfo": {
+          "confirmed": 215,
+          "used": 83,
+          "updated": 32,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.21",
+        "dst_canonical": "192.0.2.21",
+        "lladdr": "02:08:09:0a:0b:0c",
+        "probes": 4,
+        "cacheinfo": {
+          "confirmed": 139,
+          "used": 139,
+          "updated": 116,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.22",
+        "dst_canonical": "192.0.2.22",
+        "lladdr": "02:09:0a:0b:0c:0d",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 13,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "239.255.255.250",
+        "dst_canonical": "239.255.255.250",
+        "lladdr": "01:00:5e:7f:ff:fa",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 216,
+          "used": 104,
+          "updated": 104,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.23",
+        "dst_canonical": "192.0.2.23",
+        "lladdr": "02:0a:0b:0c:0d:0e",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 37,
+          "used": 64,
+          "updated": 173,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.24",
+        "dst_canonical": "192.0.2.24",
+        "lladdr": "02:0b:0c:0d:0e:0f",
+        "probes": 4,
+        "cacheinfo": {
+          "confirmed": 88,
+          "used": 94,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.25",
+        "dst_canonical": "192.0.2.25",
+        "lladdr": "02:0c:0d:0e:0f:10",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 102,
+          "used": 102,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 2,
+        "state_name": "REACHABLE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.26",
+        "dst_canonical": "192.0.2.26",
+        "lladdr": "02:0d:0e:0f:10:11",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 218,
+          "used": 218,
+          "updated": 218,
+          "refcnt": 1
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.27",
+        "dst_canonical": "192.0.2.27",
+        "lladdr": "02:0e:0f:10:11:12",
+        "probes": 4,
+        "cacheinfo": {
+          "confirmed": 179,
+          "used": 179,
+          "updated": 167,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.28",
+        "dst_canonical": "192.0.2.28",
+        "lladdr": "02:0f:10:11:12:13",
+        "probes": 6,
+        "cacheinfo": {
+          "confirmed": 20,
+          "used": 116,
+          "updated": 164,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.29",
+        "dst_canonical": "192.0.2.29",
+        "lladdr": "02:10:11:12:13:14",
+        "probes": 3,
+        "cacheinfo": {
+          "confirmed": 219,
+          "used": 64,
+          "updated": 107,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.30",
+        "dst_canonical": "192.0.2.30",
+        "lladdr": "02:11:12:13:14:15",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 218,
+          "used": 218,
+          "updated": 116,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.31",
+        "dst_canonical": "192.0.2.31",
+        "lladdr": "02:12:13:14:15:16",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 64,
+          "used": 64,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "224.0.0.251",
+        "dst_canonical": "224.0.0.251",
+        "lladdr": "01:00:5e:00:00:fb",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 51,
+          "used": 195,
+          "updated": 195,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 3,
+        "type_name": "AX25",
+        "dst": "192.0.2.7",
+        "dst_canonical": "192.0.2.7",
+        "lladdr": "ff:ff:ff:ff:ff:ff",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 176,
+          "used": 64,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 32,
+        "state_name": "FAILED",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.32",
+        "dst_canonical": "192.0.2.32",
+        "probes": 6,
+        "cacheinfo": {
+          "confirmed": 213,
+          "used": 167,
+          "updated": 116,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.33",
+        "dst_canonical": "192.0.2.33",
+        "lladdr": "02:13:14:15:16:17",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 13,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.34",
+        "dst_canonical": "192.0.2.34",
+        "lladdr": "02:14:15:16:17:18",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 115,
+          "used": 115,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 1,
+        "ifname": "lo",
+        "family": "ipv4",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 3,
+        "type_name": "AX25",
+        "dst": "0.0.0.0",
+        "dst_canonical": "0.0.0.0",
+        "lladdr": "00:00:00:00:00:00",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 195,
+          "used": 143,
+          "updated": 143,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.35",
+        "dst_canonical": "192.0.2.35",
+        "lladdr": "02:15:16:17:18:19",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 64,
+          "used": 64,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.36",
+        "dst_canonical": "192.0.2.36",
+        "lladdr": "02:16:17:18:19:1a",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 218,
+          "used": 218,
+          "updated": 115,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 32,
+        "state_name": "FAILED",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.37",
+        "dst_canonical": "192.0.2.37",
+        "probes": 3,
+        "cacheinfo": {
+          "confirmed": 64,
+          "used": 218,
+          "updated": 167,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.38",
+        "dst_canonical": "192.0.2.38",
+        "lladdr": "02:17:18:19:1a:1b",
+        "probes": 6,
+        "cacheinfo": {
+          "confirmed": 249,
+          "used": 28,
+          "updated": 137,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.39",
+        "dst_canonical": "192.0.2.39",
+        "lladdr": "02:18:19:1a:1b:1c",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 12,
+          "used": 12,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.40",
+        "dst_canonical": "192.0.2.40",
+        "lladdr": "02:19:1a:1b:1c:1d",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 145,
+          "used": 145,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.41",
+        "dst_canonical": "192.0.2.41",
+        "lladdr": "02:17:18:19:1a:1b",
+        "probes": 3,
+        "cacheinfo": {
+          "confirmed": 58,
+          "used": 64,
+          "updated": 202,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 32,
+        "state_name": "FAILED",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.42",
+        "dst_canonical": "192.0.2.42",
+        "probes": 6,
+        "cacheinfo": {
+          "confirmed": 144,
+          "used": 173,
+          "updated": 122,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.43",
+        "dst_canonical": "192.0.2.43",
+        "lladdr": "02:1a:1b:1c:1d:1e",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 63,
+          "used": 34,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.44",
+        "dst_canonical": "192.0.2.44",
+        "lladdr": "02:1b:1c:1d:1e:1f",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 204,
+          "used": 58,
+          "updated": 92,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.45",
+        "dst_canonical": "192.0.2.45",
+        "lladdr": "02:1c:1d:1e:1f:20",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 96,
+          "used": 96,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.46",
+        "dst_canonical": "192.0.2.46",
+        "lladdr": "02:1d:1e:1f:20:21",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 218,
+          "used": 218,
+          "updated": 116,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 8,
+        "state_name": "DELAY",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "192.0.2.47",
+        "dst_canonical": "192.0.2.47",
+        "lladdr": "02:1e:1f:20:21:22",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 218,
+          "updated": 218,
+          "refcnt": 1
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv4",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 3,
+        "type_name": "AX25",
+        "dst": "255.255.255.255",
+        "dst_canonical": "255.255.255.255",
+        "lladdr": "ff:ff:ff:ff:ff:ff",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 80,
+          "used": 224,
+          "updated": 224,
+          "refcnt": 0
+        }
+      }
+    ],
+    "ndp_cache": [
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:2c4",
+        "lladdr": "33:33:ff:00:02:c4",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 192,
+          "used": 80,
+          "updated": 80,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::c",
+        "lladdr": "33:33:00:00:00:0c",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 216,
+          "used": 104,
+          "updated": 104,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::4",
+        "lladdr": "02:1f:20:21:22:23",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 116,
+          "used": 116,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:2",
+        "lladdr": "33:33:00:01:00:02",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 108,
+          "used": 252,
+          "updated": 252,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::5054:54ff:fe79:8815",
+        "lladdr": "02:12:13:14:15:16",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 116,
+          "used": 116,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::1aa2:570d:5fe7:d2d8",
+        "lladdr": "02:0e:0f:10:11:12",
+        "probes": 4,
+        "cacheinfo": {
+          "confirmed": 154,
+          "used": 154,
+          "updated": 167,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:ffc",
+        "lladdr": "33:33:ff:00:0f:fc",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 255,
+          "used": 143,
+          "updated": 143,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ffe7:d2d8",
+        "lladdr": "33:33:ff:e7:d2:d8",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 11,
+          "used": 155,
+          "updated": 155,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 128,
+        "flag_names": [
+          "ROUTER"
+        ],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::5",
+        "lladdr": "02:06:07:08:09:0a",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 64,
+          "used": 64,
+          "updated": 167,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::6",
+        "lladdr": "02:15:16:17:18:19",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 218,
+          "used": 218,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:2",
+        "lladdr": "33:33:ff:00:00:02",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 252,
+          "used": 140,
+          "updated": 140,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::10fc:f2ff:fed5:41bb",
+        "lladdr": "02:20:21:22:23:24",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 13,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 1,
+        "ifname": "lo",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::16",
+        "lladdr": "00:00:00:00:00:00",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 254,
+          "used": 142,
+          "updated": 142,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:43",
+        "lladdr": "33:33:ff:00:00:43",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 204,
+          "used": 92,
+          "updated": 92,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::2",
+        "lladdr": "33:33:00:00:00:02",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 173,
+          "used": 61,
+          "updated": 61,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::5054:88ff:fe79:bbdb",
+        "lladdr": "02:15:16:17:18:19",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 218,
+          "used": 218,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::fb",
+        "lladdr": "33:33:00:00:00:fb",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 185,
+          "used": 73,
+          "updated": 73,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff09:f127",
+        "lladdr": "33:33:ff:09:f1:27",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 44,
+          "used": 188,
+          "updated": 188,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 1,
+        "ifname": "lo",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 2,
+        "type_name": "EETHER",
+        "dst": "::1",
+        "lladdr": "00:00:00:00:00:00",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 140,
+          "used": 28,
+          "updated": 28,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:ffd",
+        "lladdr": "33:33:ff:00:0f:fd",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 0,
+          "used": 144,
+          "updated": 144,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::5054:4aff:fe79:5b74",
+        "lladdr": "02:07:08:09:0a:0b",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 116,
+          "used": 116,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::7",
+        "lladdr": "02:12:13:14:15:16",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 116,
+          "used": 116,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:2c9",
+        "lladdr": "33:33:ff:00:02:c9",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 102,
+          "used": 246,
+          "updated": 246,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::8",
+        "lladdr": "02:09:0a:0b:0c:0d",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 13,
+          "updated": 116,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::9",
+        "lladdr": "02:07:08:09:0a:0b",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 116,
+          "used": 116,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::a",
+        "lladdr": "02:21:22:23:24:25",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 13,
+          "updated": 116,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:3",
+        "lladdr": "33:33:ff:00:00:03",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 249,
+          "used": 137,
+          "updated": 137,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:44",
+        "lladdr": "33:33:ff:00:00:44",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 211,
+          "used": 99,
+          "updated": 99,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::b",
+        "lladdr": "02:0e:0f:10:11:12",
+        "probes": 4,
+        "cacheinfo": {
+          "confirmed": 80,
+          "used": 80,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::5054:30ff:fe79:135a",
+        "lladdr": "02:0a:0b:0c:0d:0e",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 167,
+          "used": 167,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:1a0",
+        "lladdr": "33:33:ff:00:01:a0",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 231,
+          "used": 119,
+          "updated": 119,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::b87a:adff:fef1:5543",
+        "lladdr": "02:09:0a:0b:0c:0d",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 13,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 128,
+        "flag_names": [
+          "ROUTER"
+        ],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::5054:92ff:fe79:f5ec",
+        "lladdr": "02:14:15:16:17:18",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 144,
+          "used": 116,
+          "updated": 116,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:199",
+        "lladdr": "33:33:ff:00:01:99",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 4,
+          "used": 148,
+          "updated": 148,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 8,
+        "state_name": "DELAY",
+        "flags": 128,
+        "flag_names": [
+          "ROUTER"
+        ],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::5054:a9ff:fe79:cd1c",
+        "lladdr": "02:06:07:08:09:0a",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 8,
+          "used": 8,
+          "updated": 16,
+          "refcnt": 1
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 8,
+        "state_name": "DELAY",
+        "flags": 128,
+        "flag_names": [
+          "ROUTER"
+        ],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::c",
+        "lladdr": "02:06:07:08:09:0a",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 184,
+          "updated": 184,
+          "refcnt": 1
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::20b:cdff:fe92:d07c",
+        "lladdr": "02:1f:20:21:22:23",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 116,
+          "used": 116,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:ffe",
+        "lladdr": "33:33:ff:00:0f:fe",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 52,
+          "used": 196,
+          "updated": 196,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:41",
+        "lladdr": "33:33:ff:00:00:41",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 210,
+          "used": 98,
+          "updated": 98,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::3285:a9ff:fe07:b4a3",
+        "lladdr": "02:21:22:23:24:25",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 13,
+          "updated": 116,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::d",
+        "lladdr": "02:0a:0b:0c:0d:0e",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 167,
+          "used": 167,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::14f3:efff:fede:978b",
+        "lladdr": "02:22:23:24:25:26",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 116,
+          "used": 116,
+          "updated": 224,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 2,
+        "state_name": "REACHABLE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::e",
+        "lladdr": "02:13:14:15:16:17",
+        "probes": 5,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 237,
+          "updated": 237,
+          "refcnt": 1
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::16",
+        "lladdr": "33:33:00:00:00:16",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 80,
+          "used": 224,
+          "updated": 224,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::5054:beff:fe79:b110",
+        "lladdr": "02:13:14:15:16:17",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 116,
+          "used": 116,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff88:93e8",
+        "lladdr": "33:33:ff:88:93:e8",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 160,
+          "used": 48,
+          "updated": 48,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 1,
+        "ifname": "lo",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 2,
+        "type_name": "EETHER",
+        "dst": "2001:db8::1",
+        "lladdr": "00:00:00:00:00:00",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 202,
+          "used": 90,
+          "updated": 90,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:152",
+        "lladdr": "33:33:ff:00:01:52",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 211,
+          "used": 99,
+          "updated": 99,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 32,
+        "state_name": "FAILED",
+        "flags": 128,
+        "flag_names": [
+          "ROUTER"
+        ],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::f",
+        "probes": 6,
+        "cacheinfo": {
+          "confirmed": 68,
+          "used": 116,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::10",
+        "lladdr": "02:08:09:0a:0b:0c",
+        "probes": 4,
+        "cacheinfo": {
+          "confirmed": 246,
+          "used": 246,
+          "updated": 13,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::5f81:dfe0:6b88:93e8",
+        "lladdr": "02:08:09:0a:0b:0c",
+        "probes": 4,
+        "cacheinfo": {
+          "confirmed": 48,
+          "used": 48,
+          "updated": 64,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:181",
+        "lladdr": "33:33:ff:00:01:81",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 136,
+          "used": 24,
+          "updated": 24,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:42",
+        "lladdr": "33:33:ff:00:00:42",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 211,
+          "used": 99,
+          "updated": 99,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 64,
+        "state_name": "NOARP",
+        "flags": 0,
+        "flag_names": [],
+        "type": 5,
+        "type_name": "CHAOS",
+        "dst": "ff02::1:ff00:19e",
+        "lladdr": "33:33:ff:00:01:9e",
+        "probes": 0,
+        "cacheinfo": {
+          "confirmed": 232,
+          "used": 120,
+          "updated": 120,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 1,
+        "state_name": "INCOMPLETE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::11",
+        "probes": 4,
+        "cacheinfo": {
+          "confirmed": 249,
+          "used": 90,
+          "updated": 90,
+          "refcnt": 1
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 4,
+        "state_name": "STALE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "fe80::5054:15ff:fe79:9c6b",
+        "lladdr": "02:05:06:07:08:09",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 64,
+          "used": 64,
+          "updated": 218,
+          "refcnt": 0
+        }
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "ipv6",
+        "state": 2,
+        "state_name": "REACHABLE",
+        "flags": 0,
+        "flag_names": [],
+        "type": 1,
+        "type_name": "ETHER",
+        "dst": "2001:db8::12",
+        "lladdr": "02:05:06:07:08:09",
+        "probes": 1,
+        "cacheinfo": {
+          "confirmed": 13,
+          "used": 64,
+          "updated": 64,
+          "refcnt": 1
+        }
+      }
+    ],
+    "bridge_fdb": [
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "01:00:5e:00:00:01"
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "33:33:00:00:00:01"
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "33:33:ff:09:f1:27"
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "01:00:5e:00:00:fb"
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "33:33:00:00:00:fb"
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "33:33:ff:00:01:99"
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp4s0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "01:00:5e:7f:ff:fa"
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "33:33:00:00:00:01"
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "01:00:5e:00:00:6a"
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "33:33:00:00:00:6a"
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "01:00:5e:00:00:01"
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "01:00:5e:00:00:fb"
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 2,
+        "flag_names": [
+          "SELF"
+        ],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "01:00:5e:7f:ff:fa"
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 0,
+        "flag_names": [],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "02:02:03:04:05:06",
+        "vlan": 1,
+        "master": 3,
+        "cacheinfo": {
+          "confirmed": 0,
+          "used": 119,
+          "updated": 119,
+          "refcnt": 0
+        },
+        "unknown_nda_attrs": [
+          15
+        ],
+        "unknown_nda_attrs_decoded": {
+          "NDA_FLAGS_EXT": 1
+        }
+      },
+      {
+        "ifindex": 3,
+        "ifname": "docker0",
+        "family": "bridge",
+        "state": 128,
+        "state_name": "PERMANENT",
+        "flags": 0,
+        "flag_names": [],
+        "type": 0,
+        "type_name": "NETROM",
+        "lladdr": "02:02:03:04:05:06",
+        "master": 3,
+        "cacheinfo": {
+          "confirmed": 0,
+          "used": 119,
+          "updated": 119,
+          "refcnt": 0
+        },
+        "unknown_nda_attrs": [
+          15
+        ],
+        "unknown_nda_attrs_decoded": {
+          "NDA_FLAGS_EXT": 1
+        }
+      }
+    ],
+    "ipv4_rules": [
+      {
+        "family": "ipv4",
+        "action": "TO_TBL",
+        "table": "LOCAL",
+        "dst_len": 0,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "table_id": 255,
+        "protocol": "KERNEL"
+      },
+      {
+        "family": "ipv4",
+        "action": "TO_TBL",
+        "table": "MAIN",
+        "dst_len": 0,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "priority": 32766,
+        "table_id": 254,
+        "protocol": "KERNEL"
+      },
+      {
+        "family": "ipv4",
+        "action": "TO_TBL",
+        "table": "DEFAULT",
+        "dst_len": 0,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "priority": 32767,
+        "table_id": 253,
+        "protocol": "KERNEL"
+      }
+    ],
+    "ipv6_rules": [
+      {
+        "family": "ipv6",
+        "action": "TO_TBL",
+        "table": "LOCAL",
+        "dst_len": 0,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "table_id": 255,
+        "protocol": "KERNEL"
+      },
+      {
+        "family": "ipv6",
+        "action": "TO_TBL",
+        "table": "MAIN",
+        "dst_len": 0,
+        "src_len": 0,
+        "tos": 0,
+        "flags": 0,
+        "priority": 32766,
+        "table_id": 254,
+        "protocol": "KERNEL"
+      }
+    ],
+    "mdb_entries": {
+      "entries": [],
+      "routers": []
+    }
+  }
+}

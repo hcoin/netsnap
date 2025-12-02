@@ -181,19 +181,109 @@ sudo netsnap-rule --ipv6
 
 ## Python API
 
-You can also use NetSnap programmatically in your Python code:
+You can use NetSnap programmatically in your Python code with three different patterns:
+
+### Pattern 1: Direct Call (Recommended for single queries)
+The socket is automatically opened and closed for each call:
 
 ```python
-from netsnap import device_info, route_info, neighbor_info
+from netsnap.device_info import RTNetlinkQuery
+from netsnap.route_info import RoutingTableQuery
+from netsnap.neighbor_info import NeighborTableQuery
+from netsnap.rule_info import RoutingRuleQuery
+from netsnap.mdb_info import MDBQuery
 
-# Get all network interfaces
-interfaces = device_info.get_interfaces()
+# Socket auto-managed per call
+rtq = RTNetlinkQuery()
+interfaces = rtq.get_interfaces()
 
-# Get routing table
-routes = route_info.get_routes()
+rt_query = RoutingTableQuery()
+routes = rt_query.get_routes()
 
-# Get neighbor table
-neighbors = neighbor_info.get_neighbors()
+ntq = NeighborTableQuery()
+neighbors = ntq.get_neighbors()
+
+rule_query = RoutingRuleQuery()
+rules = rule_query.get_rules()
+
+mdb_query = MDBQuery()
+mdb_entries = mdb_query.get_mdb()
+```
+
+### Pattern 2: Context Manager (Recommended for multiple queries within one function call)
+Socket opened on entry, closed on exit:
+
+```python
+from netsnap.device_info import RTNetlinkQuery
+from netsnap.route_info import RoutingTableQuery
+from netsnap.neighbor_info import NeighborTableQuery
+from netsnap.rule_info import RoutingRuleQuery
+from netsnap.mdb_info import MDBQuery
+
+# Context manager handles socket lifecycle
+with RTNetlinkQuery() as rtq:
+    interfaces = rtq.get_interfaces()
+
+with RoutingTableQuery() as rt_query:
+    routes = rt_query.get_routes()
+
+with NeighborTableQuery() as ntq:
+    neighbors = ntq.get_neighbors()
+
+with RoutingRuleQuery() as rule_query:
+    rules = rule_query.get_rules()
+
+with MDBQuery() as mdb_query:
+    mdb_entries = mdb_query.get_mdb()
+```
+
+### Pattern 3: Manual Socket Management (Recommended for multiple queries across functions using a class global instance)
+Explicit control for multiple queries - avoids socket creation overhead. Don't forget to close on destroy:
+
+```python
+from netsnap.device_info import RTNetlinkQuery
+from netsnap.route_info import RoutingTableQuery
+from netsnap.neighbor_info import NeighborTableQuery
+from netsnap.rule_info import RoutingRuleQuery
+from netsnap.mdb_info import MDBQuery
+
+# Manual socket management for multiple queries
+rtq = RTNetlinkQuery()
+rtq.open()
+interfaces = rtq.get_interfaces()
+link_info = rtq.get_link_info()
+addr_info = rtq.get_address_info()
+rtq.close()
+
+# Query multiple address families efficiently
+rt_query = RoutingTableQuery()
+rt_query.open()
+ipv4_routes = rt_query.get_routes(family='ipv4')
+ipv6_routes = rt_query.get_routes(family='ipv6')
+rt_query.close()
+
+# Query multiple neighbor types efficiently
+ntq = NeighborTableQuery()
+ntq.open()
+arp_cache = ntq.get_neighbors(family='ipv4')
+ndp_cache = ntq.get_neighbors(family='ipv6')
+bridge_fdb = ntq.get_neighbors(family='bridge')
+ntq.close()
+
+# Query multiple rule families efficiently
+rule_query = RoutingRuleQuery()
+rule_query.open()
+ipv4_rules = rule_query.get_rules(family='ipv4')
+ipv6_rules = rule_query.get_rules(family='ipv6')
+rule_query.close()
+
+# Query multicast database for multiple bridges
+mdb_query = MDBQuery()
+mdb_query.open()
+br0_mdb = mdb_query.get_mdb(bridge_ifindex=1)
+br1_mdb = mdb_query.get_mdb(bridge_ifindex=2)
+all_mdb = mdb_query.get_mdb()
+mdb_query.close()
 ```
 
 ## Output Format
@@ -386,6 +476,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Built on top of Linux kernel Netlink protocols
 - Uses CFFI for efficient C integration
 - Inspired by the need for comprehensive network monitoring on Linux systems
+- Claude.ai for saving the author's typing time.
 
 ## Author
 
@@ -399,4 +490,7 @@ Harry Coin <hcoin@quietfountain.com>
   - Multicast database and routing rules
   - DPLL pin information support
   - Comprehensive bridge and STP support
+  
+  See Changelog for more details.
+  
 # netsnap

@@ -777,202 +777,65 @@ class RoutingTableQuery:
     """
     Query routing table information using RTNETLINK protocol via C library.
     Supports IPv4 and IPv6 routes across all routing tables.
+    
+    Can be used with context manager or direct calls:
+        # Option 1: Context manager (socket auto-closed)
+        with RoutingTableQuery() as rtq:
+            routes = rtq.get_routes()
+        
+        # Option 2: Direct call (socket managed per-call)
+        rtq = RoutingTableQuery()
+        routes = rtq.get_routes()
+        
+        # Option 3: Manual socket management
+        rtq = RoutingTableQuery()
+        rtq.open()
+        ipv4_routes = rtq.get_routes(family='ipv4')
+        ipv6_routes = rtq.get_routes(family='ipv6')
+        rtq.close()
     """
     
     def __init__(self, capture_unknown_attrs: bool = True):
+        """
+        Initialize routing table query.
+        
+        Args:
+            capture_unknown_attrs: Whether to capture unknown RTA attributes
+        """
         self.sock = -1
         self.capture_unknown_attrs = capture_unknown_attrs
     
-    def __enter__(self):
-        """Context manager entry - create socket"""
+    def open(self):
+        """Explicitly open the netlink socket"""
+        if self.sock >= 0:
+            return  # Already open
+        
         self.sock = lib.nl_create_socket()
         if self.sock < 0:
             raise RuntimeError("Failed to create netlink socket")
-        return self
     
-    def __exit__(self, _exc_type, _exc_val, _exc_tb):
-        """Context manager exit - close socket"""
+    def close(self):
+        """Explicitly close the netlink socket"""
         if self.sock >= 0:
             lib.nl_close_socket(self.sock)
             self.sock = -1
+    
+    def __enter__(self):
+        """Context manager entry"""
+        self.open()
+        return self
+    
+    def __exit__(self, _exc_type, _exc_val, _exc_tb):
+        """Context manager exit"""
+        self.close()
         return False
     
     def get_routes(self, family: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Query routing table entries.
         
-        Args:
-            family: Optional filter - 'ipv4', 'ipv6', or None for all
-        
-        Returns:
-            List of route entries with full metadata
-        """
-        family_map = {
-            'ipv4': AF_INET,
-            'ipv6': AF_INET6,
-            None: 0,  # AF_UNSPEC
-        }
-        
-        if family not in family_map:
-            raise ValueError(f"Invalid family: {family}. Use 'ipv4', 'ipv6', or None")
-        
-        af_family = family_map[family]
-        seq = ffi.new("unsigned int*")
-        
-        if lib.nl_send_getroute(self.sock, seq, af_family) < 0:
-            raise RuntimeError("Failed to send RTM_GETROUTE request")
-        
-        response = lib.nl_receive_response(self.sock, seq[0])
-        if not response:
-            raise RuntimeError("Failed to receive response")
-        
-        try:
-            routes_ptr = ffi.new("route_entry_t**")
-            count_ptr = ffi.new("int*")
-            
-            result = lib.nl_parse_routes(response, routes_ptr, count_ptr)
-            if result < 0:
-                raise RuntimeError("Failed to parse route entries")
-            
-            routes_array = routes_ptr[0]
-            num_routes = count_ptr[0]
-            
-            routes = []
-            for i in range(num_routes):
-                entry = routes_array[i]
-                
-                route_info = {
-                    'family': 'ipv4' if entry.family == AF_INET else 'ipv6' if entry.family == AF_INET6 else entry.family,
-                    'type': ROUTE_TYPE_NAMES.get(entry.type, f'TYPE_{entry.type}'),
-                    'protocol': ROUTE_PROTOCOL_NAMES.get(entry.protocol, f'PROTO_{entry.protocol}'),
-                    'scope': ROUTE_SCOPE_NAMES.get(entry.scope, f'SCOPE_{entry.scope}'),
-                    'table': ROUTE_TABLE_NAMES.get(entry.table, entry.table),
-                    'dst_len': entry.dst_len,
-                    'src_len': entry.src_len,
-                    'tos': entry.tos,
-                    'flags': entry.flags,
-                }
-                
-                # Destination network
-                if entry.has_dst_addr:
-                    if entry.family == AF_INET:
-                        dst_bytes = bytes(entry.dst_addr[0:4])
-                        dst_ip = ipaddress.IPv4Address(dst_bytes)
-                        route_info['dst'] = f"{dst_ip}/{entry.dst_len}"
-                    elif entry.family == AF_INET6:
-                        dst_bytes = bytes(entry.dst_addr[0:16])
-                        dst_ip = ipaddress.IPv6Address(dst_bytes)
-                        route_info['dst'] = f"{dst_ip}/{entry.dst_len}"
-                else:
-                    # Default route
-                    if entry.family == AF_INET:
-                        route_info['dst'] = f"0.0.0.0/{entry.dst_len}"
-                    elif entry.family == AF_INET6:
-                        route_info['dst'] = f"::/{entry.dst_len}"
-                
-                # Source network (policy routing)
-                if entry.has_src_addr:
-                    if entry.family == AF_INET:
-                        src_bytes = bytes(entry.src_addr[0:4])
-                        src_ip = ipaddress.IPv4Address(src_bytes)
-                        route_info['src'] = f"{src_ip}/{entry.src_len}"
-                    elif entry.family == AF_INET6:
-                        src_bytes = bytes(entry.src_addr[0:16])
-                        src_ip = ipaddress.IPv6Address(src_bytes)
-                        route_info['src'] = f"{src_ip}/{entry.src_len}"
-                
-                # Gateway
-                if entry.has_gateway:
-                    if entry.family == AF_INET:
-                        gw_bytes = bytes(entry.gateway[0:4])
-                        route_info['gateway'] = str(ipaddress.IPv4Address(gw_bytes))
-                    elif entry.family == AF_INET6:
-                        gw_bytes = bytes(entry.gateway[0:16])
-                        route_info['gateway'] = str(ipaddress.IPv6Address(gw_bytes))
-                
-                # Preferred source
-                if entry.has_prefsrc:
-                    if entry.family == AF_INET:
-                        pref_bytes = bytes(entry.prefsrc[0:4])
-                        route_info['prefsrc'] = str(ipaddress.IPv4Address(pref_bytes))
-                    elif entry.family == AF_INET6:
-                        pref_bytes = bytes(entry.prefsrc[0:16])
-                        route_info['prefsrc'] = str(ipaddress.IPv6Address(pref_bytes))
-                
-                # Output interface
-                if entry.has_ifindex:
-                    route_info['dev_index'] = entry.ifindex
-                    if entry.ifindex > 0:
-                        # Get interface name from index
-                        ifname_buf = ffi.new("char[]", 16)
-                        if lib.nl_get_ifname(entry.ifindex, ifname_buf, 16) == 0:
-                            ifname_str = ffi.string(ifname_buf).decode('utf-8')
-                            if ifname_str:  # Only add if non-empty
-                                route_info['dev'] = ifname_str
-                
-                # Priority/metric
-                if entry.has_priority:
-                    route_info['metric'] = entry.priority
-                
-                # Table ID (for tables > 255)
-                if entry.has_table_id:
-                    route_info['table_id'] = entry.table_id
-                    route_info['table'] = ROUTE_TABLE_NAMES.get(entry.table_id, entry.table_id)
-                
-                # Cache info
-                if entry.cacheinfo.has_clntref:
-                    route_info['cacheinfo'] = {
-                        'clntref': entry.cacheinfo.clntref,
-                        'last_use': entry.cacheinfo.last_use,
-                        'expires': entry.cacheinfo.expires,
-                        'error': entry.cacheinfo.error,
-                        'used': entry.cacheinfo.used,
-                    }
-                
-                # Multipath nexthops
-                if entry.nexthop_count > 0:
-                    nexthops = []
-                    for j in range(entry.nexthop_count):
-                        nh = entry.nexthops[j]
-                        nh_info = {
-                            'dev_index': nh.ifindex,
-                            'weight': nh.weight,
-                            'flags': nh.flags,
-                        }
-                        # Get interface name for nexthop
-                        if nh.ifindex > 0:
-                            ifname_buf = ffi.new("char[]", 16)
-                            if lib.nl_get_ifname(nh.ifindex, ifname_buf, 16) == 0:
-                                ifname_str = ffi.string(ifname_buf).decode('utf-8')
-                                if ifname_str:  # Only add if non-empty
-                                    nh_info['dev'] = ifname_str
-                        if nh.has_gateway:
-                            if entry.family == AF_INET:
-                                gw_bytes = bytes(nh.gateway[0:4])
-                                nh_info['gateway'] = str(ipaddress.IPv4Address(gw_bytes))
-                            elif entry.family == AF_INET6:
-                                gw_bytes = bytes(nh.gateway[0:16])
-                                nh_info['gateway'] = str(ipaddress.IPv6Address(gw_bytes))
-                        nexthops.append(nh_info)
-                    route_info['multipath'] = nexthops
-                
-                # Unknown attributes
-                if self.capture_unknown_attrs and entry.unknown_rta_attrs_count > 0:
-                    unknown_list = []
-                    for j in range(entry.unknown_rta_attrs_count):
-                        unknown_list.append(entry.unknown_rta_attrs[j])
-                    route_info['unknown_rta_attrs'] = unknown_list
-                    route_info['unknown_rta_attrs_decoded'] = decode_unknown_attrs(unknown_list)
-                
-                routes.append(route_info)
-            
-            lib.nl_free_routes(routes_array)
-            return routes
-        
-        finally:
-            lib.nl_free_response(response)
-        """
-        Query routing table entries.
+        If socket is not already open (e.g., via 'with' or explicit open()),
+        this method will open and close it automatically for this call.
         
         Args:
             family: Optional filter - 'ipv4', 'ipv6', or None for all
@@ -980,171 +843,182 @@ class RoutingTableQuery:
         Returns:
             List of route entries with full metadata
         """
-        family_map = {
-            'ipv4': AF_INET,
-            'ipv6': AF_INET6,
-            None: 0,  # AF_UNSPEC
-        }
-        
-        if family not in family_map:
-            raise ValueError(f"Invalid family: {family}. Use 'ipv4', 'ipv6', or None")
-        
-        af_family = family_map[family]
-        seq = ffi.new("unsigned int*")
-        
-        if lib.nl_send_getroute(self.sock, seq, af_family) < 0:
-            raise RuntimeError("Failed to send RTM_GETROUTE request")
-        
-        response = lib.nl_receive_response(self.sock, seq[0])
-        if not response:
-            raise RuntimeError("Failed to receive response")
+        # Check if we need to auto-open the socket
+        need_auto_close = False
+        if self.sock < 0:
+            self.open()
+            need_auto_close = True
         
         try:
-            routes_ptr = ffi.new("route_entry_t**")
-            count_ptr = ffi.new("int*")
+            family_map = {
+                'ipv4': AF_INET,
+                'ipv6': AF_INET6,
+                None: 0,  # AF_UNSPEC
+            }
             
-            result = lib.nl_parse_routes(response, routes_ptr, count_ptr)
-            if result < 0:
-                raise RuntimeError("Failed to parse route entries")
+            if family not in family_map:
+                raise ValueError(f"Invalid family: {family}. Use 'ipv4', 'ipv6', or None")
             
-            routes_array = routes_ptr[0]
-            num_routes = count_ptr[0]
+            af_family = family_map[family]
+            seq = ffi.new("unsigned int*")
             
-            routes = []
-            for i in range(num_routes):
-                entry = routes_array[i]
+            if lib.nl_send_getroute(self.sock, seq, af_family) < 0:
+                raise RuntimeError("Failed to send RTM_GETROUTE request")
+            
+            response = lib.nl_receive_response(self.sock, seq[0])
+            if not response:
+                raise RuntimeError("Failed to receive response")
+            
+            try:
+                routes_ptr = ffi.new("route_entry_t**")
+                count_ptr = ffi.new("int*")
                 
-                route_info = {
-                    'family': 'ipv4' if entry.family == AF_INET else 'ipv6' if entry.family == AF_INET6 else entry.family,
-                    'type': ROUTE_TYPE_NAMES.get(entry.type, f'TYPE_{entry.type}'),
-                    'protocol': ROUTE_PROTOCOL_NAMES.get(entry.protocol, f'PROTO_{entry.protocol}'),
-                    'scope': ROUTE_SCOPE_NAMES.get(entry.scope, f'SCOPE_{entry.scope}'),
-                    'table': ROUTE_TABLE_NAMES.get(entry.table, entry.table),
-                    'dst_len': entry.dst_len,
-                    'src_len': entry.src_len,
-                    'tos': entry.tos,
-                    'flags': entry.flags,
-                }
+                result = lib.nl_parse_routes(response, routes_ptr, count_ptr)
+                if result < 0:
+                    raise RuntimeError("Failed to parse route entries")
                 
-                # Destination network
-                if entry.has_dst_addr:
-                    if entry.family == AF_INET:
-                        dst_bytes = bytes(entry.dst_addr[0:4])
-                        dst_ip = ipaddress.IPv4Address(dst_bytes)
-                        route_info['dst'] = f"{dst_ip}/{entry.dst_len}"
-                    elif entry.family == AF_INET6:
-                        dst_bytes = bytes(entry.dst_addr[0:16])
-                        dst_ip = ipaddress.IPv6Address(dst_bytes)
-                        route_info['dst'] = f"{dst_ip}/{entry.dst_len}"
-                else:
-                    # Default route
-                    if entry.family == AF_INET:
-                        route_info['dst'] = f"0.0.0.0/{entry.dst_len}"
-                    elif entry.family == AF_INET6:
-                        route_info['dst'] = f"::/{entry.dst_len}"
+                routes_array = routes_ptr[0]
+                num_routes = count_ptr[0]
                 
-                # Source network (policy routing)
-                if entry.has_src_addr:
-                    if entry.family == AF_INET:
-                        src_bytes = bytes(entry.src_addr[0:4])
-                        src_ip = ipaddress.IPv4Address(src_bytes)
-                        route_info['src'] = f"{src_ip}/{entry.src_len}"
-                    elif entry.family == AF_INET6:
-                        src_bytes = bytes(entry.src_addr[0:16])
-                        src_ip = ipaddress.IPv6Address(src_bytes)
-                        route_info['src'] = f"{src_ip}/{entry.src_len}"
-                
-                # Gateway
-                if entry.has_gateway:
-                    if entry.family == AF_INET:
-                        gw_bytes = bytes(entry.gateway[0:4])
-                        route_info['gateway'] = str(ipaddress.IPv4Address(gw_bytes))
-                    elif entry.family == AF_INET6:
-                        gw_bytes = bytes(entry.gateway[0:16])
-                        route_info['gateway'] = str(ipaddress.IPv6Address(gw_bytes))
-                
-                # Preferred source
-                if entry.has_prefsrc:
-                    if entry.family == AF_INET:
-                        pref_bytes = bytes(entry.prefsrc[0:4])
-                        route_info['prefsrc'] = str(ipaddress.IPv4Address(pref_bytes))
-                    elif entry.family == AF_INET6:
-                        pref_bytes = bytes(entry.prefsrc[0:16])
-                        route_info['prefsrc'] = str(ipaddress.IPv6Address(pref_bytes))
-                
-                # Output interface
-                if entry.has_ifindex:
-                    route_info['dev_index'] = entry.ifindex
-                    if entry.ifindex > 0:
-                        # Get interface name from index
-                        ifname_buf = ffi.new("char[]", 16)
-                        if lib.nl_get_ifname(entry.ifindex, ifname_buf, 16) == 0:
-                            ifname_str = ffi.string(ifname_buf).decode('utf-8')
-                            if ifname_str:  # Only add if non-empty
-                                route_info['dev'] = ifname_str
-                
-                # Priority/metric
-                if entry.has_priority:
-                    route_info['metric'] = entry.priority
-                
-                # Table ID (for tables > 255)
-                if entry.has_table_id:
-                    route_info['table_id'] = entry.table_id
-                    route_info['table'] = ROUTE_TABLE_NAMES.get(entry.table_id, entry.table_id)
-                
-                # Cache info
-                if entry.cacheinfo.has_clntref:
-                    route_info['cacheinfo'] = {
-                        'clntref': entry.cacheinfo.clntref,
-                        'last_use': entry.cacheinfo.last_use,
-                        'expires': entry.cacheinfo.expires,
-                        'error': entry.cacheinfo.error,
-                        'used': entry.cacheinfo.used,
+                routes = []
+                for i in range(num_routes):
+                    entry = routes_array[i]
+                    
+                    route_info = {
+                        'family': 'ipv4' if entry.family == AF_INET else 'ipv6' if entry.family == AF_INET6 else entry.family,
+                        'type': ROUTE_TYPE_NAMES.get(entry.type, f'TYPE_{entry.type}'),
+                        'protocol': ROUTE_PROTOCOL_NAMES.get(entry.protocol, f'PROTO_{entry.protocol}'),
+                        'scope': ROUTE_SCOPE_NAMES.get(entry.scope, f'SCOPE_{entry.scope}'),
+                        'table': ROUTE_TABLE_NAMES.get(entry.table, entry.table),
+                        'dst_len': entry.dst_len,
+                        'src_len': entry.src_len,
+                        'tos': entry.tos,
+                        'flags': entry.flags,
                     }
-                
-                # Multipath nexthops
-                if entry.nexthop_count > 0:
-                    nexthops = []
-                    for j in range(entry.nexthop_count):
-                        nh = entry.nexthops[j]
-                        nh_info = {
-                            'dev_index': nh.ifindex,
-                            'weight': nh.weight,
-                            'flags': nh.flags,
-                        }
-                        # Get interface name for nexthop
-                        if nh.ifindex > 0:
+                    
+                    # Destination network
+                    if entry.has_dst_addr:
+                        if entry.family == AF_INET:
+                            dst_bytes = bytes(entry.dst_addr[0:4])
+                            dst_ip = ipaddress.IPv4Address(dst_bytes)
+                            route_info['dst'] = f"{dst_ip}/{entry.dst_len}"
+                        elif entry.family == AF_INET6:
+                            dst_bytes = bytes(entry.dst_addr[0:16])
+                            dst_ip = ipaddress.IPv6Address(dst_bytes)
+                            route_info['dst'] = f"{dst_ip}/{entry.dst_len}"
+                    else:
+                        # Default route
+                        if entry.family == AF_INET:
+                            route_info['dst'] = f"0.0.0.0/{entry.dst_len}"
+                        elif entry.family == AF_INET6:
+                            route_info['dst'] = f"::/{entry.dst_len}"
+                    
+                    # Source network (policy routing)
+                    if entry.has_src_addr:
+                        if entry.family == AF_INET:
+                            src_bytes = bytes(entry.src_addr[0:4])
+                            src_ip = ipaddress.IPv4Address(src_bytes)
+                            route_info['src'] = f"{src_ip}/{entry.src_len}"
+                        elif entry.family == AF_INET6:
+                            src_bytes = bytes(entry.src_addr[0:16])
+                            src_ip = ipaddress.IPv6Address(src_bytes)
+                            route_info['src'] = f"{src_ip}/{entry.src_len}"
+                    
+                    # Gateway
+                    if entry.has_gateway:
+                        if entry.family == AF_INET:
+                            gw_bytes = bytes(entry.gateway[0:4])
+                            route_info['gateway'] = str(ipaddress.IPv4Address(gw_bytes))
+                        elif entry.family == AF_INET6:
+                            gw_bytes = bytes(entry.gateway[0:16])
+                            route_info['gateway'] = str(ipaddress.IPv6Address(gw_bytes))
+                    
+                    # Preferred source
+                    if entry.has_prefsrc:
+                        if entry.family == AF_INET:
+                            pref_bytes = bytes(entry.prefsrc[0:4])
+                            route_info['prefsrc'] = str(ipaddress.IPv4Address(pref_bytes))
+                        elif entry.family == AF_INET6:
+                            pref_bytes = bytes(entry.prefsrc[0:16])
+                            route_info['prefsrc'] = str(ipaddress.IPv6Address(pref_bytes))
+                    
+                    # Output interface
+                    if entry.has_ifindex:
+                        route_info['dev_index'] = entry.ifindex
+                        if entry.ifindex > 0:
+                            # Get interface name from index
                             ifname_buf = ffi.new("char[]", 16)
-                            if lib.nl_get_ifname(nh.ifindex, ifname_buf, 16) == 0:
+                            if lib.nl_get_ifname(entry.ifindex, ifname_buf, 16) == 0:
                                 ifname_str = ffi.string(ifname_buf).decode('utf-8')
                                 if ifname_str:  # Only add if non-empty
-                                    nh_info['dev'] = ifname_str
-                        if nh.has_gateway:
-                            if entry.family == AF_INET:
-                                gw_bytes = bytes(nh.gateway[0:4])
-                                nh_info['gateway'] = str(ipaddress.IPv4Address(gw_bytes))
-                            elif entry.family == AF_INET6:
-                                gw_bytes = bytes(nh.gateway[0:16])
-                                nh_info['gateway'] = str(ipaddress.IPv6Address(gw_bytes))
-                        nexthops.append(nh_info)
-                    route_info['multipath'] = nexthops
+                                    route_info['dev'] = ifname_str
+                    
+                    # Priority/metric
+                    if entry.has_priority:
+                        route_info['metric'] = entry.priority
+                    
+                    # Table ID (for tables > 255)
+                    if entry.has_table_id:
+                        route_info['table_id'] = entry.table_id
+                        route_info['table'] = ROUTE_TABLE_NAMES.get(entry.table_id, entry.table_id)
+                    
+                    # Cache info
+                    if entry.cacheinfo.has_clntref:
+                        route_info['cacheinfo'] = {
+                            'clntref': entry.cacheinfo.clntref,
+                            'last_use': entry.cacheinfo.last_use,
+                            'expires': entry.cacheinfo.expires,
+                            'error': entry.cacheinfo.error,
+                            'used': entry.cacheinfo.used,
+                        }
+                    
+                    # Multipath nexthops
+                    if entry.nexthop_count > 0:
+                        nexthops = []
+                        for j in range(entry.nexthop_count):
+                            nh = entry.nexthops[j]
+                            nh_info = {
+                                'dev_index': nh.ifindex,
+                                'weight': nh.weight,
+                                'flags': nh.flags,
+                            }
+                            # Get interface name for nexthop
+                            if nh.ifindex > 0:
+                                ifname_buf = ffi.new("char[]", 16)
+                                if lib.nl_get_ifname(nh.ifindex, ifname_buf, 16) == 0:
+                                    ifname_str = ffi.string(ifname_buf).decode('utf-8')
+                                    if ifname_str:  # Only add if non-empty
+                                        nh_info['dev'] = ifname_str
+                            if nh.has_gateway:
+                                if entry.family == AF_INET:
+                                    gw_bytes = bytes(nh.gateway[0:4])
+                                    nh_info['gateway'] = str(ipaddress.IPv4Address(gw_bytes))
+                                elif entry.family == AF_INET6:
+                                    gw_bytes = bytes(nh.gateway[0:16])
+                                    nh_info['gateway'] = str(ipaddress.IPv6Address(gw_bytes))
+                            nexthops.append(nh_info)
+                        route_info['multipath'] = nexthops
+                    
+                    # Unknown attributes
+                    if self.capture_unknown_attrs and entry.unknown_rta_attrs_count > 0:
+                        unknown_list = []
+                        for j in range(entry.unknown_rta_attrs_count):
+                            unknown_list.append(entry.unknown_rta_attrs[j])
+                        route_info['unknown_rta_attrs'] = unknown_list
+                        route_info['unknown_rta_attrs_decoded'] = decode_unknown_attrs(unknown_list)
+                    
+                    routes.append(route_info)
                 
-                # Unknown attributes
-                if self.capture_unknown_attrs and entry.unknown_rta_attrs_count > 0:
-                    unknown_list = []
-                    for j in range(entry.unknown_rta_attrs_count):
-                        unknown_list.append(entry.unknown_rta_attrs[j])
-                    route_info['unknown_rta_attrs'] = unknown_list
-                    route_info['unknown_rta_attrs_decoded'] = decode_unknown_attrs(unknown_list)
-                
-                routes.append(route_info)
+                lib.nl_free_routes(routes_array)
+                return routes
             
-            lib.nl_free_routes(routes_array)
-            return routes
+            finally:
+                lib.nl_free_response(response)
         
         finally:
-            lib.nl_free_response(response)
-
+            # Auto-close socket if we auto-opened it
+            if need_auto_close:
+                self.close()
 
 # Example usage
 def main():

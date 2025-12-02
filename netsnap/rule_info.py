@@ -611,29 +611,65 @@ class RoutingRuleQuery:
     """
     Query routing rule (policy routing) information using RTNETLINK protocol via C library.
     Supports IPv4 and IPv6 rules.
+    
+    Can be used with context manager or direct calls:
+        # Option 1: Context manager (socket auto-closed)
+        with RoutingRuleQuery() as rrq:
+            rules = rrq.get_rules()
+        
+        # Option 2: Direct call (socket managed per-call)
+        rrq = RoutingRuleQuery()
+        rules = rrq.get_rules()
+        
+        # Option 3: Manual socket management
+        rrq = RoutingRuleQuery()
+        rrq.open()
+        ipv4_rules = rrq.get_rules(family='ipv4')
+        ipv6_rules = rrq.get_rules(family='ipv6')
+        rrq.close()
     """
     
     def __init__(self, capture_unknown_attrs: bool = True):
+        """
+        Initialize routing rule query.
+        
+        Args:
+            capture_unknown_attrs: Whether to capture unknown FRA attributes
+        """
         self.sock = -1
         self.capture_unknown_attrs = capture_unknown_attrs
     
-    def __enter__(self):
-        """Context manager entry - create socket"""
+    def open(self):
+        """Explicitly open the netlink socket"""
+        if self.sock >= 0:
+            return  # Already open
+        
         self.sock = lib.nl_create_socket()
         if self.sock < 0:
             raise RuntimeError("Failed to create netlink socket")
-        return self
     
-    def __exit__(self, exc_type, exc_val, exc_tb): #@UnusedVariable
-        """Context manager exit - close socket"""
+    def close(self):
+        """Explicitly close the netlink socket"""
         if self.sock >= 0:
             lib.nl_close_socket(self.sock)
             self.sock = -1
+    
+    def __enter__(self):
+        """Context manager entry"""
+        self.open()
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit"""
+        self.close()
         return False
     
     def get_rules(self, family: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Query routing rule entries.
+        
+        If socket is not already open (e.g., via 'with' or explicit open()),
+        this method will open and close it automatically for this call.
         
         Args:
             family: Optional filter - 'ipv4', 'ipv6', or None for all
@@ -641,129 +677,140 @@ class RoutingRuleQuery:
         Returns:
             List of rule entries with full metadata
         """
-        family_map = {
-            'ipv4': AF_INET,
-            'ipv6': AF_INET6,
-            None: 0,  # AF_UNSPEC
-        }
-        
-        if family not in family_map:
-            raise ValueError(f"Invalid family: {family}. Use 'ipv4', 'ipv6', or None")
-        
-        af_family = family_map[family]
-        seq = ffi.new("unsigned int*")
-        
-        if lib.nl_send_getrule(self.sock, seq, af_family) < 0:
-            raise RuntimeError("Failed to send RTM_GETRULE request")
-        
-        response = lib.nl_receive_response(self.sock, seq[0])
-        if not response:
-            raise RuntimeError("Failed to receive response")
+        # Check if we need to auto-open the socket
+        need_auto_close = False
+        if self.sock < 0:
+            self.open()
+            need_auto_close = True
         
         try:
-            rules_ptr = ffi.new("rule_entry_t**")
-            count_ptr = ffi.new("int*")
+            family_map = {
+                'ipv4': AF_INET,
+                'ipv6': AF_INET6,
+                None: 0,  # AF_UNSPEC
+            }
             
-            result = lib.nl_parse_rules(response, rules_ptr, count_ptr)
-            if result < 0:
-                raise RuntimeError("Failed to parse rule entries")
+            if family not in family_map:
+                raise ValueError(f"Invalid family: {family}. Use 'ipv4', 'ipv6', or None")
             
-            rules_array = rules_ptr[0]
-            num_rules = count_ptr[0]
+            af_family = family_map[family]
+            seq = ffi.new("unsigned int*")
             
-            rules = []
-            for i in range(num_rules):
-                entry = rules_array[i]
-                
-                rule_info = {
-                    'family': 'ipv4' if entry.family == AF_INET else 'ipv6' if entry.family == AF_INET6 else entry.family,
-                    'action': RULE_ACTION_NAMES.get(entry.action, f'ACTION_{entry.action}'),
-                    'table': RULE_TABLE_NAMES.get(entry.table, entry.table),
-                    'dst_len': entry.dst_len,
-                    'src_len': entry.src_len,
-                    'tos': entry.tos,
-                    'flags': entry.flags,
-                }
-                
-                # Priority
-                if entry.has_priority:
-                    rule_info['priority'] = entry.priority
-                
-                # Destination network
-                if entry.has_dst_addr:
-                    if entry.family == AF_INET:
-                        dst_bytes = bytes(entry.dst_addr[0:4])
-                        dst_ip = ipaddress.IPv4Address(dst_bytes)
-                        rule_info['dst'] = f"{dst_ip}/{entry.dst_len}"
-                    elif entry.family == AF_INET6:
-                        dst_bytes = bytes(entry.dst_addr[0:16])
-                        dst_ip = ipaddress.IPv6Address(dst_bytes)
-                        rule_info['dst'] = f"{dst_ip}/{entry.dst_len}"
-                
-                # Source network
-                if entry.has_src_addr:
-                    if entry.family == AF_INET:
-                        src_bytes = bytes(entry.src_addr[0:4])
-                        src_ip = ipaddress.IPv4Address(src_bytes)
-                        rule_info['src'] = f"{src_ip}/{entry.src_len}"
-                    elif entry.family == AF_INET6:
-                        src_bytes = bytes(entry.src_addr[0:16])
-                        src_ip = ipaddress.IPv6Address(src_bytes)
-                        rule_info['src'] = f"{src_ip}/{entry.src_len}"
-                
-                # Input interface
-                if entry.has_iifname:
-                    iifname = ffi.string(entry.iifname).decode('utf-8')
-                    if iifname:
-                        rule_info['iif'] = iifname
-                
-                # Output interface
-                if entry.has_oifname:
-                    oifname = ffi.string(entry.oifname).decode('utf-8')
-                    if oifname:
-                        rule_info['oif'] = oifname
-                
-                # Firewall mark
-                if entry.has_fwmark:
-                    rule_info['fwmark'] = entry.fwmark
-                    if entry.has_fwmask:
-                        rule_info['fwmask'] = entry.fwmask
-                
-                # Table ID (for tables > 255)
-                if entry.has_table_id:
-                    rule_info['table_id'] = entry.table_id
-                    rule_info['table'] = RULE_TABLE_NAMES.get(entry.table_id, entry.table_id)
-                
-                # Goto target
-                if entry.has_goto_target:
-                    rule_info['goto'] = entry.goto_target
-                
-                # Suppress prefixlen
-                if entry.has_suppress_prefixlen:
-                    # Skip sentinel value (0xFFFFFFFF = -1 for unsigned int)
-                    if entry.suppress_prefixlen != 4294967295:
-                        rule_info['suppress_prefixlen'] = entry.suppress_prefixlen
-                
-                # Protocol (who installed the rule)
-                if entry.has_protocol:
-                    rule_info['protocol'] = RULE_PROTOCOL_NAMES.get(entry.protocol, f'PROTO_{entry.protocol}')
-                
-                # Unknown attributes
-                if self.capture_unknown_attrs and entry.unknown_fra_attrs_count > 0:
-                    unknown_list = []
-                    for j in range(entry.unknown_fra_attrs_count):
-                        unknown_list.append(entry.unknown_fra_attrs[j])
-                    rule_info['unknown_fra_attrs'] = unknown_list
-                    rule_info['unknown_fra_attrs_decoded'] = decode_unknown_attrs(unknown_list)
-                
-                rules.append(rule_info)
+            if lib.nl_send_getrule(self.sock, seq, af_family) < 0:
+                raise RuntimeError("Failed to send RTM_GETRULE request")
             
-            lib.nl_free_rules(rules_array)
-            return rules
+            response = lib.nl_receive_response(self.sock, seq[0])
+            if not response:
+                raise RuntimeError("Failed to receive response")
+            
+            try:
+                rules_ptr = ffi.new("rule_entry_t**")
+                count_ptr = ffi.new("int*")
+                
+                result = lib.nl_parse_rules(response, rules_ptr, count_ptr)
+                if result < 0:
+                    raise RuntimeError("Failed to parse rule entries")
+                
+                rules_array = rules_ptr[0]
+                num_rules = count_ptr[0]
+                
+                rules = []
+                for i in range(num_rules):
+                    entry = rules_array[i]
+                    
+                    rule_info = {
+                        'family': 'ipv4' if entry.family == AF_INET else 'ipv6' if entry.family == AF_INET6 else entry.family,
+                        'action': RULE_ACTION_NAMES.get(entry.action, f'ACTION_{entry.action}'),
+                        'table': RULE_TABLE_NAMES.get(entry.table, entry.table),
+                        'dst_len': entry.dst_len,
+                        'src_len': entry.src_len,
+                        'tos': entry.tos,
+                        'flags': entry.flags,
+                    }
+                    
+                    # Priority
+                    if entry.has_priority:
+                        rule_info['priority'] = entry.priority
+                    
+                    # Destination network
+                    if entry.has_dst_addr:
+                        if entry.family == AF_INET:
+                            dst_bytes = bytes(entry.dst_addr[0:4])
+                            dst_ip = ipaddress.IPv4Address(dst_bytes)
+                            rule_info['dst'] = f"{dst_ip}/{entry.dst_len}"
+                        elif entry.family == AF_INET6:
+                            dst_bytes = bytes(entry.dst_addr[0:16])
+                            dst_ip = ipaddress.IPv6Address(dst_bytes)
+                            rule_info['dst'] = f"{dst_ip}/{entry.dst_len}"
+                    
+                    # Source network
+                    if entry.has_src_addr:
+                        if entry.family == AF_INET:
+                            src_bytes = bytes(entry.src_addr[0:4])
+                            src_ip = ipaddress.IPv4Address(src_bytes)
+                            rule_info['src'] = f"{src_ip}/{entry.src_len}"
+                        elif entry.family == AF_INET6:
+                            src_bytes = bytes(entry.src_addr[0:16])
+                            src_ip = ipaddress.IPv6Address(src_bytes)
+                            rule_info['src'] = f"{src_ip}/{entry.src_len}"
+                    
+                    # Input interface
+                    if entry.has_iifname:
+                        iifname = ffi.string(entry.iifname).decode('utf-8')
+                        if iifname:
+                            rule_info['iif'] = iifname
+                    
+                    # Output interface
+                    if entry.has_oifname:
+                        oifname = ffi.string(entry.oifname).decode('utf-8')
+                        if oifname:
+                            rule_info['oif'] = oifname
+                    
+                    # Firewall mark
+                    if entry.has_fwmark:
+                        rule_info['fwmark'] = entry.fwmark
+                        if entry.has_fwmask:
+                            rule_info['fwmask'] = entry.fwmask
+                    
+                    # Table ID (for tables > 255)
+                    if entry.has_table_id:
+                        rule_info['table_id'] = entry.table_id
+                        rule_info['table'] = RULE_TABLE_NAMES.get(entry.table_id, entry.table_id)
+                    
+                    # Goto target
+                    if entry.has_goto_target:
+                        rule_info['goto'] = entry.goto_target
+                    
+                    # Suppress prefixlen
+                    if entry.has_suppress_prefixlen:
+                        # Skip sentinel value (0xFFFFFFFF = -1 for unsigned int)
+                        if entry.suppress_prefixlen != 4294967295:
+                            rule_info['suppress_prefixlen'] = entry.suppress_prefixlen
+                    
+                    # Protocol (who installed the rule)
+                    if entry.has_protocol:
+                        rule_info['protocol'] = RULE_PROTOCOL_NAMES.get(entry.protocol, f'PROTO_{entry.protocol}')
+                    
+                    # Unknown attributes
+                    if self.capture_unknown_attrs and entry.unknown_fra_attrs_count > 0:
+                        unknown_list = []
+                        for j in range(entry.unknown_fra_attrs_count):
+                            unknown_list.append(entry.unknown_fra_attrs[j])
+                        rule_info['unknown_fra_attrs'] = unknown_list
+                        rule_info['unknown_fra_attrs_decoded'] = decode_unknown_attrs(unknown_list)
+                    
+                    rules.append(rule_info)
+                
+                lib.nl_free_rules(rules_array)
+                return rules
+            
+            finally:
+                lib.nl_free_response(response)
         
         finally:
-            lib.nl_free_response(response)
-
+            # Auto-close socket if we auto-opened it
+            if need_auto_close:
+                self.close()
 
 # Example usage
 def main():
